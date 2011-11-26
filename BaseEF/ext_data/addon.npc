@@ -1,0 +1,190 @@
+Dischler
+{
+	rank		crewman
+	fullName	"Dischler, Jeffrey"
+	headmodel	chakotay/lang
+	torsomodel	crewthin/gold
+	legsmodel	crewthin
+	reactions	3
+	aim		3
+	move		3
+	aggression	3
+	evasion		1
+	intelligence	4
+	scale           94
+	playerTeam	starfleet
+	race		human
+	snd		gencrew2
+	sndextra	gencrew2
+}
+
+boothby
+{
+	fullName	"Boothby"
+	headmodel		boothby
+	torsomodel		crewthin/boothby
+	legsmodel		crewthin/boothby
+	reactions	4
+	aim			5
+	move		3
+	aggression	2
+	evasion		5
+	intelligence	5
+	walkSpeed		75
+	scale           93
+	playerTeam	starfleet
+	race		human
+}
+
+biohulk
+{
+	headmodel	none
+	torsomodel	biohulk
+	legsmodel	biohulk
+	walkSpeed	50
+	runSpeed	220
+	playerTeam	forge
+	enemyTeam	starfleet
+	race		harvester
+	yawspeed	120
+	snd		harvester
+	height	45
+	width		24
+	hFOV		120
+}
+
+chaoticaguard
+{
+	fullName	"Lackey"
+	headmodel	chaoticaguard
+	torsomodel	klingon/cguard
+	legsmodel	klingon/cguard
+	reactions	1
+	aim		1
+	move		2
+	aggression	3
+	evasion		1
+	intelligence	3
+	scale		100
+	playerTeam	imperial
+	enemyTeam	starfleet
+	race		human
+	height		64
+	crouchheight 48
+	walkSpeed	51
+	runSpeed	200
+	snd		genimp2
+	sndcombat	genimp2
+	sndscav	genimp2
+	yawspeed	90
+	walkSpeed	55
+	runSpeed	200
+}
+
+chaotica
+{
+	fullName	"Doctor Chaotica"
+	headmodel	doctor/chaotica
+	torsomodel	klingon/chaotica
+	legsmodel	klingon/chaotica
+	reactions	1
+	aim		1
+	move		2
+	aggression	3
+	evasion		1
+	intelligence	3
+	scale		95
+	playerTeam	imperial
+	enemyTeam	starfleet
+	race		human
+	height	56
+	crouchheight 48
+	walkSpeed	51
+	runSpeed	200
+	snd		genimp1
+	sndcombat	genimp1
+	sndscav	genimp1
+	yawspeed	90
+	walkSpeed	55
+	runSpeed	200
+}
+
+buster
+{
+	rank		ensign
+	fullName	"Buster Kincaide"
+	headmodel		kim/buster
+	torsomodel		crewthin/buster
+	legsmodel		crewthin/buster
+	reactions	2
+	aim		2
+	move		1
+	aggression	1
+	evasion		2
+	intelligence	2
+	scale           95
+	playerTeam	starfleet
+	race		human
+	snd		kim
+	sndextra	kim
+}
+
+proton
+{
+	fullName	"Captain Proton"
+	headmodel		proton
+	torsomodel		crewthin/proton
+	legsmodel		crewthin/proton
+	reactions	4
+	aim		5
+	move		3
+	aggression	2
+	evasion		5
+	intelligence	5
+	scale           98
+	playerTeam	starfleet
+	race		human
+	snd		paris
+	sndextra	paris
+}
+
+goodheart
+{
+	fullName	"Constance Goodheart"
+	headmodel		goodheart
+	torsomodel		seven/goodheart
+	legsmodel		goodheart
+	reactions	4
+	aim		5
+	move		3
+	aggression	2
+	evasion		5
+	intelligence	5
+	scale           95
+	playerTeam	starfleet
+	race		human
+	snd		gencrewf
+	sndextra	gencrewf
+}
+
+satan
+{
+	fullName	"Satan's Robot"
+	headmodel		none
+	torsomodel		satan
+	legsmodel		satan
+	reactions		1
+	aim				3
+	move			1
+	aggression		5
+	evasion			1
+	intelligence	1
+	walkSpeed		75
+	runSpeed		100
+	height			84
+	scale           150
+	playerTeam		hirogen
+	race			dreadnought
+	snd				bot
+	sndextra		bot
+}

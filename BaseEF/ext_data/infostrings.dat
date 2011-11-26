@@ -1,0 +1,1334 @@
+//----------------------------------------
+//    EXTERNAL INFOSTRINGS DATA 
+//----------------------------------------
+
+// Fields --
+// infoitem		the infostring type
+// infostring	string to display when the reticle passes over the object
+// textcolor	color of text to display -- TC_YELLOW or TC_RED
+
+
+{
+infoitem		II_HEALTH_REGEN
+infostring	"Health Energy Terminal"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_ENERGY_REGEN
+infostring	"Weapon Energy Terminal"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_AMMO_REGEN
+infostring	"Weapon Energy Terminal"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_PLASMA_FILTER
+infostring	"Plasma Filter"
+textcolor		TC_RED
+}
+
+{
+infoitem		II_ISODESIUM
+infostring	"Isodesium"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_DIS_NODE
+infostring	"Distribution Node"
+textcolor		TC_RED
+}
+
+{
+infoitem		II_IMOD
+infostring	"Infinity Modulator"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_SEDATIVE
+infostring	"Solinol - Tranquilizer"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_TRUTH_SERUM
+infostring	"Veritrax 12 - Truth Serum"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_CONTROL_SWITCH
+infostring	"Control Switch"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_POWER_CRYSTAL
+infostring	"Ammunition Crystal"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_STARFLEET_HELMET
+infostring	"Starfleet Helmet"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_ELEVATOR_SWITCH
+infostring	"Elevator Switch"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_TURBOLIFT_PANEL
+infostring	"Turbolift Control Panel"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_LIFT_PANEL
+infostring	"Lift Control Panel"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_CONTROL_PANEL
+infostring	"Control Panel"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_CONTROL_PANEL
+infostring	"Control Panel"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_BORG1
+infostring		"The Rescue"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_BORG2
+infostring		"Incursion"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_HOLODECK
+infostring		"Tactical Decision"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY1
+infostring		"Condition"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY2
+infostring		"Unavoidable Delays"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY3
+infostring		"Hazard Duty"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY4
+infostring		"Defense"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY5
+infostring		"Hazard Ops"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_STASIS1
+infostring		"Data Retrieval"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_STASIS2
+infostring		"Deep Echoes"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_STASIS3
+infostring		"Encounters"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY6
+infostring		"Renewal"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY7
+infostring		"Union"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY8
+infostring		"Departure"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_SCAV1
+infostring		"The Visit"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_SCAV2
+infostring		"Dangerous Ground"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_SCAV3
+infostring		"Conflicting Views"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_SCAV3B
+infostring		"Conflicting Views (pt 2)"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_SCAV4
+infostring		"Disorder"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_SCAV5
+infostring		"Infiltration"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_SCAVBOSS
+infostring		"The Hunter"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY9
+infostring		"Fallout"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_BORG3
+infostring		"Proving Ground"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_BORG4
+infostring		"Information"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_BORG5
+infostring		"Covenant"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_BORG6
+infostring		"Infestation"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY13
+infostring		"R & R"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY14
+infostring		"Visual Confirmation"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY15
+infostring		"Offense"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_DN1
+infostring		"The Breach"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_DN2
+infostring		"Command"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_DN3
+infostring		"Primary Encounter"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_DN4
+infostring		"The Skirmish"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_DN5
+infostring		"Defensive Measures"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_TRAIN
+infostring		"Transit"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_DN6
+infostring		"Attunement"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_DN8
+infostring		"Array"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY16
+infostring		"Invasion"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY17
+infostring		"Decisions"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_FORGE1
+infostring		"External Stimuli"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_FORGE2
+infostring		"Matrix"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_FORGE3
+infostring		"Onslaught"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_FORGE4
+infostring		"Visual Magnitude"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_FORGE5
+infostring		"Dissolution"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_FORGEBOSS
+infostring		"Command Decision"
+textcolor		TC_YELLOW
+}
+
+{
+infoitem		II_VOY20
+infostring		"Epilogue"
+textcolor		TC_YELLOW
+}
+
+
+{
+infoitem		II_TUTORIAL
+infostring		"Tutorial"
+textcolor		TC_YELLOW
+}
+
+
+{
+infoitem		II_NOVEL
+infostring		"Vulcan Love Slave 3: Ponn Farr à Trois by R.W. Love"
+textcolor		TC_YELLOW
+}
+
+
+// ****** NEWLY ADDED for Tour Mode 3/08/01
+{
+infoitem	II_DECK_01
+infostring	"Deck 01 - Bridge"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_DECK_02
+infostring	"Deck 02 - Mess Hall"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_DECK_04
+infostring	"Deck 04 - Hazard Ops"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_DECK_05
+infostring	"Deck 05 - Sick Bay"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_DECK_08
+infostring	"Deck 08 - Astrometrics"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_DECK_09
+infostring	"Deck 09 - Computer Core"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_DECK_10
+infostring	"Deck 10 - Shuttle Bay"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_DECK_11
+infostring	"Deck 11 - Engineering"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PHASER_CONTROL
+infostring	"Phaser Control"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PHOTON_TORP_CONTROL
+infostring	"Photon Torpedo Control"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_DECK_15
+infostring	"Deck 15 - Ventral Maintenance"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_QTRS_JANEWAY
+infostring	"Captain Kathryn Janeway"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_QTRS_CHAKOTAY
+infostring	"Commander Chakotay"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_QTRS_TUVOK
+infostring	"Lt. Commander Tuvok"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_QTRS_TORRES
+infostring	"Lt. B'Elanna Torres"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_QTRS_PARIS
+infostring	"Ensign Tom Paris"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_QTRS_KIM
+infostring	"Ensign Harry Kim"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_QTRS_NEELIX
+infostring	"Neelix"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_QTRS_MUNRO_MALE
+infostring	"Ensign Alexander Munro"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_QTRS_MUNRO_FEMALE
+infostring	"Ensign Alexandria Munro"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_QTRS_CHANG
+infostring	"Crewman Austin Chang"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_QTRS_BIESSMAN
+infostring	"Crewman Kendrick Biessman"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_QTRS_MURPHY
+infostring	"Crewman Telsia Murphy"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_QTRS_CHELL
+infostring	"Crewman Chell"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_QTRS_JUROT
+infostring	"Crewman Juliet Jurot"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_AUTODESTRUCT
+infostring	"Auto Destruct Control"
+textcolor	TC_RED
+}
+
+{
+infoitem	II_PANEL_SECURITY
+infostring	"Security Access Control"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_TRANSPORTER
+infostring	"Transporter Control"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_REDALERT
+infostring	"Red Alert"
+textcolor	TC_RED
+}
+
+{
+infoitem	II_PANEL_SHUTTLELAUNCH
+infostring	"Shuttle Launch Control"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_SHUTTLELAUNCH
+infostring	"Shuttle Launch Control"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_HOLODECK
+infostring	"Holodeck Control"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_LIBRARY
+infostring	"Library Station Control"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_ASTROMETRICS
+infostring	"Astrometrics Control"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_FOSTER
+infostring	"Personal Log - Lt. Les Foster"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_MUNRO
+infostring	"Personal Log - Ensign Munro"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_CHANG
+infostring	"Personal Log - Crewman Chang"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_CHANG
+infostring	"Personal Log - Crewman Chang"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_BIESSMAN
+infostring	"Personal Log - Crewman Biessman"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_MURPHY
+infostring	"Personal Log - Crewman Murphy"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_CHELL
+infostring	"Personal Log - Crewman Chell"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_JUROT
+infostring	"Personal Log - Crewman Jurot"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_CAPTAIN
+infostring	"Personal Log - Captain Janeway"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_CHAKOTAY
+infostring	"Personal Log - Lt. Cmdr. Chakotay"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_TUVOK
+infostring	"Personal Log - Lt. Cmdr. Tuvok"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_TORRES
+infostring	"Personal Log - Lt. Torres"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_PARIS
+infostring	"Personal Log - Ensign Paris"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_KIM
+infostring	"Personal Log - Ensign Kim"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_DOCTOR
+infostring	"Personal Log - EMH Doctor"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_SEVEN
+infostring	"Personal Log - Seven of Nine"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_NEELIX
+infostring	"Personal Log - Neelix"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_MEDICAL_LOG
+infostring	"Medical Log"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_OBJECTIVE_LOG
+infostring	"Objective Log"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_DECK_03
+infostring	"Deck 03 - Officers’ Quarters"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_TURBOLIFT
+infostring	"Turbolift"
+textcolor	TC_YELLOW
+}
+
+
+{
+infoitem	II_MESSHALL
+infostring	"Mess Hall"
+textcolor	TC_YELLOW
+}
+{
+infoitem	II_CHAKOTAY_OFFICE
+infostring	"Cmdr. Chakotay's Office"
+textcolor	TC_YELLOW
+}
+{
+infoitem	II_AUXILIARY_CARGO_BAY
+infostring	"Auxiliary Cargo Bay"
+textcolor	TC_YELLOW
+}
+{
+infoitem	II_HAZARD_BRIEFING
+infostring	"Hazard Ops Briefing"
+textcolor	TC_YELLOW
+}
+{
+infoitem	II_HAZARD_ARMORY
+infostring	"Hazard Ops Armory"
+textcolor	TC_YELLOW
+}
+{
+infoitem	II_HAZARD_TRANSPORTER
+infostring	"Hazard Ops Transporter"
+textcolor	TC_YELLOW
+}
+{
+infoitem	II_HAZARD_LOCKERROOM
+infostring	"Hazard Ops Locker Room"
+textcolor	TC_YELLOW
+}
+{
+infoitem	II_HAZARD_LOUNGE
+infostring	"Hazard Ops Lounge"
+textcolor	TC_YELLOW
+}
+{
+infoitem	II_BRIG
+infostring	"Brig"
+textcolor	TC_YELLOW
+}
+{
+infoitem	II_SICKBAY
+infostring	"Sick Bay"
+textcolor	TC_YELLOW
+}
+{
+infoitem	II_MAIN_CARGOBAY
+infostring	"Loading Dock"
+textcolor	TC_YELLOW
+}
+{
+infoitem	II_ASTROMETRICS
+infostring	"Astrometrics"
+textcolor	TC_YELLOW
+}
+{
+infoitem	II_JEFFRIES_TUBE_ACCESS
+infostring	"Jeffries Tube Access"
+textcolor	TC_YELLOW
+}
+{
+infoitem	II_MAINENGINEERING
+infostring	"Main Engineering"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_SHUTTLEBAY
+infostring	"Shuttle Bay"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_VENTRAL_MAINTENANCE
+infostring	"Ventral Maintenance"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_TACTICAL
+infostring	"Tactical"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_OPS
+infostring	"Ops"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_ENGINEERING
+infostring	"Engineering"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_NAVIGATION
+infostring	"Navigation"
+textcolor	TC_YELLOW
+}
+
+
+{
+infoitem	II_PADD_SHIPMAINTENANCE
+infostring	"Ship Repair Status"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PADD_REDALERT_DRILLS
+infostring	"Hazard Team Readiness"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PADD_SENSORUSE
+infostring	"Sensor Use Schedule"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PADD_DEPARTMENTSTATUS
+infostring	"Department Status"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PADD_PROTONEPISODES
+infostring	"Captain Proton Episodes"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PADD_RECIPES
+infostring	"Recipes"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PADD_SOCIAL_EVENTS
+infostring	"Voyager Social Events"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_SHOOTING_RANGE
+infostring	"Shooting Range Results"
+textcolor	TC_YELLOW
+}
+
+
+{
+infoitem	II_PANEL_WEAPONLIBRARY
+infostring	"Weapon Library"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_DISEASELIBRARY
+infostring	"Disease Library"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_CARGO_LOG
+infostring	"Cargo Log"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PANEL_ENGINEERING_DATABASE
+infostring	"Engineering Library"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PERSONALLOG_DISCHLER
+infostring	"Personal Log - Crewman Dischler"
+textcolor	TC_YELLOW
+}
+
+
+{
+infoitem	II_HAZARDGAME
+infostring	"BORG SLAYER"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_STARFLEET_PADD
+infostring	"Starfleet PADD"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_SHUTTLEBAY_DOOR
+infostring	"Shuttlebay Door Controls"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_ATMOSPHERIC_CONTAINMENT
+infostring	"Atmospheric Containment"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_HARVESTER_LEG
+infostring	"Harvester Leg"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_EF_POSTER
+infostring	"Elite Force Poster"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_ACTION_FIGURE
+infostring	"Elite Force Action Figure"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_COLLECTORS_PLATE
+infostring	"Seven of Nine Collector's Plate"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_STASIS_FIREFLIES
+infostring	"Etherian Fireflies"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_ARC_WELDER
+infostring	"Arc Welder"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_GRENADE_LAUNCHER
+infostring	"Grenade Launcher"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_BORG_SLAYER_GAME
+infostring	"Borg Slayer Game"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_RAVEN_PLAQUE
+infostring	"Raven Plaque"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_WARPCORE
+infostring	"Warp Core"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_SHUTTLECRAFT
+infostring	"Shuttle craft"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_DOOR
+infostring	"Door"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PLANT
+infostring	"Plant"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_MEDICAL_EQUIPMENT
+infostring	"Medical Equipment"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_BARREL
+infostring	"Cargo Barrel"
+textcolor	TC_YELLOW
+}
+
+
+{
+infoitem	II_UNIFORM
+infostring	"Uniform"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_HELMET
+infostring	"Hazard Helmet"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_CARGO_CONTAINER
+infostring	"Federation Cargo Container"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_TOOLBOX
+infostring	"Engineer's Toolkit"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_CHAOTICA_BUST
+infostring	"Chaotica Bust"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_DECK_MAP
+infostring	"Deck Map"
+textcolor	TC_YELLOW
+}
+
+
+{
+infoitem	II_SWORD
+infostring	"Sword"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PHONOGRAPH
+infostring	"Ancient Phonograph"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PADD
+infostring	"Federation PADD"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_BOOK
+infostring	"Book"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_MICROSCOPE
+infostring	"Microscope"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_TEASET
+infostring	"Tea set"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_ART
+infostring	"Art work"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_MUNRO_PICTURE
+infostring	"New Chicago Rugby Team"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_MAINTENANCE_CONTROL_PANEL
+infostring	"Maintenance Control Panel"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_SECURITY_ACCESS_CONTROL_PANEL
+infostring	"Security Access Control Panel"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_COMPUTER_CORE_CONTROL_PANEL
+infostring	"Computer Core Control Panel"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_BOWL
+infostring	"Bowl"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_KITCHENWARE
+infostring	"Kitchenware"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_TABLE
+infostring	"Table"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_FORCEFIELD
+infostring	"Forcefield"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_COMPUTER
+infostring	"Computer"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_WORF
+infostring	"Portrait with Worf"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_LANDINGGEAR
+infostring	"Landing Gear Control"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_ROASTBEEF
+infostring	"Roast Beef"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PORKCHOPS
+infostring	"Seared Pork Chops"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_RUMPROAST
+infostring	"Talaxian Rump Roast"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_STEAK
+infostring	"Sirloin Steak in Wine Sauce"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_WINE
+infostring	"Klingon Blood Wine"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_BRANDY
+infostring	"Alvanian Brandy"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_LATOUR
+infostring	"Chateau Latour"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_BERGUNDY
+infostring	"Burgundy"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_COFFEE
+infostring	"Coffee Black"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_JUICE
+infostring	"Prune Juice"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_TEA
+infostring	"Bergamot Tea"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_LANDRASCOFFEE
+infostring	"Landras Blend Coffee"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_PASTA
+infostring	"Alfarian Hair Pasta"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_BANTAN
+infostring	"Bantan"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_CARDAWAY
+infostring	"Stuffed Cardaway Leaves"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_CRISPS
+infostring	"Felada Onion Crisps"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_STEAK_SALAD
+infostring	"Sirloin Steak and Corn Salad"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_STEW_VEGG
+infostring	"Gabosti Stew and Vegetables"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_SOUP_BISCUITS
+infostring	"Kalavian Biscuits and Tomato Soup"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_SOUP_FRITTERS
+infostring	"Darvot Fritters and Chicken Soup"
+textcolor	TC_YELLOW
+}
+
+
+{
+infoitem	II_PHOTO
+infostring	"Photo"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_CHESS_SET
+infostring	"Tri-Dimensional Chess Set"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_RUGBY_TROPHY
+infostring	"New Chicago High School Rugby Team MVP, 2365"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_EVIL_STRONGHOLD
+infostring	"The Evil Stronghold of Dr. Chaotica"
+textcolor	TC_YELLOW
+}
+
+{
+infoitem	II_LABYRINTH
+infostring	"The Labyrinth of Despair" 
+textcolor	TC_YELLOW
+}
+

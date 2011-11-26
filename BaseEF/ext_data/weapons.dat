@@ -1,0 +1,684 @@
+//    EXTERNAL WEAPON & AMMO DATA 
+//
+//    NOTE!!!!!!!!! Weapontype must start the block of weapon data.
+//    NOTE!!!!!!!!! Ammo must start the block of ammo data.
+//
+//  Weapontype - weapon data is associated with which weapon (must be first)
+//    WP_NONE
+//    WP_PHASER
+//    WP_COMPRESSION_RIFLE
+//    WP_IMOD
+//    WP_SCAVENGER_RIFLE
+//    WP_STASIS
+//    WP_GRENADE_LAUNCHER,
+//    WP_TETRION_DISRUPTOR,
+//    WP_DREADNOUGHT,
+//    WP_QUANTUM_BURST,
+//    WP_BORG_WEAPON 
+//    WP_BORG_TASER
+//    WP_BORG_ASSIMILATOR
+//    WP_BORG_DRILL
+//    WP_TRICORDER
+//
+//  Weaponclass   - weapon name
+//  Weaponmodel   - weapon model used in game
+//  weaponicon	  - interface image
+//  Ammotype      - type of power weapon needs to fire
+//    0 - No power
+//    1 - Star Fleet power
+//    2 - Alien Crystal power
+//    3 - Phaser power
+//  Ammolowcount	- amount when "Low ammo" warning appears on screen
+//  Flashcolor		- color generate by weapon flash (R,G,B)
+//  Firingsound		- sound file used when firing
+//	altfiringsound	- sound file used when alt-firing
+//  flashsound		- sound file used by flash
+//  altflashsound	- sound file used by an alt-fire flash
+//	stopsound		- sound file used when a firing sound stops
+//  Firetime		- amount of time between firings
+//  altfireTime		- for alt fire
+//  Range			- range of weapon
+//  energyPerShot	- amount of energy used per shot
+//  altenergypershot- for alt fire
+//  barrelcount		- number of barrels the model has (weaponname_b?.md3)
+//  missileModel	- missile .md3
+//  altmissileModel	- alternate missile .md3
+//  missileSound	- played while flying
+//  altmissileSound	- alternate missile launch sound
+//  missileLight	- intensity of lightsource for missile - if 0.0 then none (float)
+//  altmissileLight	- alternate missile light
+//  missileLightColor - color in three float style R, G, B (0.0 to 1.0) - NOTE - if you have a light, you MUST HAVE THESE
+//  altmissileLightColor - alternate color in three float style R, G, B (0.0 to 1.0) 
+//  missileHitSound		- played on impact
+//	altmissileHitSound	- for alt fire
+//  missileFuncName		- missile fly function
+//	altmissileFuncName	- for alt fire
+//
+//	FUNCTION NAMES
+//		borgfunc
+//		scavengerfunc
+//		altscavengerfunc
+//		stasisfunc
+//		grenadefunc
+//		altgrenadefunc
+//		tetrionfunc
+//		dreadnoughtfunc
+//		quantumfunc
+//		quantumaltfunc
+//		botrocketfunc
+//		forgeprojfunc
+//		forgeprojfunc2
+//		forgepsychfunc
+//		parasiteacidfunc
+//		stasisattackfunc
+//		loaderlaserfunc
+//		botprojfunc
+
+//
+//	For AMMO Types
+//	ammoicon		- STRING
+//	ammomax			- INT
+
+
+// WP_NULL
+{
+WEAPONTYPE WP_NONE
+}
+
+// WP_PHASER
+{
+weapontype       WP_PHASER
+weaponclass      weapon_phaser
+weaponmodel      models/weapons2/phaser/phaser.md3
+weaponIcon       icons/w_icon_phaser
+flashcolor       0 0 0
+flashsound		 sound/weapons/phaser/phaserstart.wav
+altflashsound	 sound/weapons/phaser/altphaserstart.wav
+firingsound		 sound/weapons/phaser/phaserfiring.wav
+altfiringsound	 sound/weapons/phaser/altphaserfiring.wav
+stopsound		 sound/weapons/phaser/phaserstop.wav
+ammotype         3
+ammolowcount     5
+energypershot    1
+firetime         100
+range            8192
+altenergypershot 3
+altfiretime      100
+altrange         8192
+}
+
+
+// WP_COMPRESSION_RIFLE
+{
+weapontype       WP_COMPRESSION_RIFLE
+weaponclass      weapon_compression_rifle
+weaponmodel      models/weapons2/prifle/prifle.md3
+weaponIcon       icons/w_icon_rifle
+flashcolor       0.16  0.16  1
+flashsound       sound/weapons/prifle/fire.wav
+altflashsound    sound/weapons/prifle/alt_fire.wav
+ammotype         1
+ammolowcount     15
+energypershot    2
+firetime         400
+range            8192
+altenergypershot 40
+altfiretime      1000
+altrange         8192
+}
+
+// WP_IMOD
+{
+weapontype       WP_IMOD
+weaponclass      weapon_imod
+weaponmodel      models/weapons2/imod/imod2.md3	
+weaponIcon       icons/w_icon_imod
+flashcolor       0.6  0.6   1
+flashsound       sound/weapons/IMOD/fire.wav
+altflashsound    sound/weapons/IMOD/alt_fire.wav
+ammotype         1
+ammolowcount     5
+energypershot    4
+firetime         400
+range            8192
+altenergypershot 8
+altfiretime      800
+altrange         8192
+barrelcount      0
+}
+
+// WP_SCAVENGER_RIFLE
+{
+weapontype       WP_SCAVENGER_RIFLE
+weaponclass      weapon_scavenger_rifle
+weaponmodel      models/weapons2/scavenger/scavenger.md3
+weaponIcon       icons/w_icon_scav
+flashcolor       1.0  0.6  0.6
+flashsound       sound/weapons/scavenger/fire.wav
+altflashsound	 sound/weapons/scavenger/alt_fire.wav
+ammotype         2
+ammolowcount     5
+energypershot    2
+firetime         100
+range            8192
+altenergypershot 8
+altfiretime      700
+altrange         8192
+missileFuncName		scavengerfunc
+altmissileFuncName	altscavengerfunc
+missileHitSound		sound/weapons/scavenger/hit_wall.wav
+}
+
+// WP_STASIS
+{
+weapontype       WP_STASIS
+weaponclass      weapon_stasis
+weaponmodel      models/weapons2/stasis/stasis.md3
+weaponIcon       icons/w_icon_stasis
+flashcolor       0.6  0.6   1
+flashsound       sound/weapons/stasis/fire.wav
+altflashsound    sound/weapons/stasis/alt_fire.wav
+ammotype         2
+ammolowcount     5
+energypershot    6
+firetime         750
+range            8192
+altenergypershot 10
+altfiretime      900
+altrange         8192
+missileFuncName  stasisfunc
+missileHitSound  sound/weapons/stasis/hit_wall.wav
+barrelcount      1
+}
+
+
+// WP_GRENADE_LAUNCHER
+{
+weapontype       WP_GRENADE_LAUNCHER
+weaponclass      weapon_grenade_launcher
+weaponmodel      models/weapons2/launcher/launcher.md3
+weaponIcon       icons/w_icon_grenade
+flashcolor       0.6  0.6   1
+flashsound       sound/weapons/glauncher/fire.wav
+altflashsound    sound/weapons/glauncher/alt_fire.wav
+ammotype         1
+ammolowcount     5
+energypershot    10
+firetime         800
+range            8192
+altenergypershot 5
+altfiretime      400
+altrange         8192
+missileLight     25
+missileLightColor 0.5 0.75 1.0
+missileModel	 models/weapons2/launcher/projectile3.md3
+altmissileModel  models/weapons2/launcher/projectile2.md3
+missileFuncName         grenadefunc
+altmissileFuncName      altgrenadefunc
+barrelcount      2
+}
+
+// WP_TETRION_DISRUPTOR
+{
+weapontype       WP_TETRION_DISRUPTOR
+weaponclass      weapon_tetrion_disruptor
+weaponmodel      models/weapons2/tpd/tpd.md3
+weaponIcon       icons/w_icon_tetrion
+flashcolor       0.6  0.6   1
+flashsound       sound/weapons/tetrion/fire.wav
+altflashsound    sound/weapons/tetrion/alt_fire.wav
+ammotype         2
+ammolowcount     5
+energypershot    1
+firetime         100
+range            8192
+altenergypershot 4
+altfiretime      200
+altrange         8192
+altmissileFuncName      tetrionfunc
+barrelcount      1
+altmissileHitSound		sound/weapons/tetrion/alt_hit_wall.wav
+}
+
+// WP_DREADNOUGHT
+{
+weapontype       WP_DREADNOUGHT
+weaponclass      weapon_dreadnought
+weaponmodel      models/weapons2/arc_welder/arc.md3
+weaponIcon       icons/w_icon_dreadnought
+flashcolor       0.6  0.6   1
+altflashsound    sound/weapons/dreadnought/dn_altfire.wav
+altmissileHitSound  sound/weapons/dreadnought/dn_altmissile.wav
+flashsound		 sound/weapons/dreadnought/dn_start.wav
+firingsound		 sound/weapons/dreadnought/dn_firing.wav
+stopsound		 sound/weapons/dreadnought/dn_stop.wav
+ammotype         2
+ammolowcount     5
+energypershot    1
+firetime         100
+range            8192
+altenergypershot 30
+altfiretime      600
+altrange         8192
+altmissileFuncName		dreadnoughtfunc
+barrelcount      4
+}
+
+
+// WP_QUANTUM_BURST
+{
+weapontype       WP_QUANTUM_BURST
+weaponclass      weapon_quantum_burst
+weaponmodel      models/weapons2/q_burst/q_burst.md3
+ammotype         1
+ammolowcount     5
+flashcolor       0.6  0.6   1
+flashsound       sound/weapons/quantum/fire.wav
+altflashsound    sound/weapons/quantum/alt_fire.wav
+firetime         600
+energypershot    20
+range            8192
+weaponIcon       icons/w_icon_quantum
+altenergypershot 25
+altfiretime      800
+altrange         8192
+missileLight     125
+missileLightColor 1.0 1.0 0.5
+missileFuncName		quantumfunc
+altmissileFuncName	quantumaltfunc
+missileHitSound		sound/weapons/quantum/hit_wall.wav
+altmissileHitSound	sound/weapons/quantum/alt_hit_wall.wav
+barrelcount      1
+}
+
+
+// WP_BORG_WEAPON
+{
+weapontype		WP_BORG_WEAPON
+weaponclass		weapon_borg_weapon
+weaponmodel		models/weapons2/borg/claw-1.md3
+ammotype		1
+ammolowcount	5
+flashcolor		0.6  0.6   1
+flashsound		sound/weapons/borg/borgshoot.wav
+firetime		500
+range			8192
+missileLight	75
+missileLightColor 0.5 1.0 0.5
+missileFuncName		borgfunc
+missileHitSound	sound/weapons/borg/borghit.wav
+}
+
+// WP_BORG_TASER
+{
+weapontype		WP_BORG_TASER
+weaponclass		weapon_borg_taser
+weaponmodel		models/weapons2/borg/pincers.md3
+ammotype		1
+ammolowcount	5
+flashcolor		0.6  0.6   1
+flashsound		sound/enemies/borg/borgtaser.wav
+firetime		500
+range			512
+}
+
+// WP_BORG_ASSIMILATOR
+{
+weapontype   WP_BORG_ASSIMILATOR
+weaponclass  weapon_borg_assimilator
+weaponmodel  models/weapons2/borg/hand.md3
+ammotype     1
+ammolowcount 5
+flashsound		sound/enemies/borg/borgass.wav
+firingsound		sound/enemies/borg/borgassloop.wav
+flashcolor   0  0  0
+firetime     100
+range        64
+}
+
+// WP_BORG_DRILL
+{
+weapontype		WP_BORG_DRILL
+weaponclass		weapon_borg_drill
+weaponmodel		models/weapons2/borg/drill.md3
+ammotype		1
+ammolowcount	5
+flashsound		sound/enemies/borg/borgass.wav
+firingsound		sound/enemies/borg/borgassloop.wav
+flashcolor   0  0  0
+firetime     100
+range        64
+}
+
+// WP_TRICORDER
+{
+weapontype   	WP_TRICORDER
+weaponclass  	weapon_tricorder
+weaponmodel  	models/weapons2/tricorder/tricorder.md3
+weaponIcon  	icons/w_icon_tricorder
+ammotype     	3
+ammolowcount 	5
+energypershot    0
+flashcolor       0 0 0
+flashsound	 sound/ambience/voyager/medictricorder.wav
+altflashsound    sound/items/tricorderscan.wav
+firetime         100
+range            8192
+altenergypershot 0
+altfiretime      100
+altrange         8192
+}
+
+// WP_BOT_WELDER
+{
+weapontype   	WP_BOT_WELDER
+weaponclass  	weapon_botwelder
+weaponmodel  	models/weapons2/noweap/noweap.md3
+weaponIcon  	icons/w_icon_tricorder
+ammotype     	3
+ammolowcount 	5
+energypershot    0
+flashcolor       0 0 0
+flashsound       sound/enemies/scoutbot/scoutfire.wav
+range            8192
+altenergypershot 0
+firetime         600
+altrange         8192
+missileFuncName	 botprojfunc
+}
+
+// WP_CHAOTICA_GUARD_GUN
+{
+weapontype   	WP_CHAOTICA_GUARD_GUN
+weaponclass  	weapon_chaos_gun
+weaponmodel      models/weapons2/chaotica_guard/test_w.md3
+weaponIcon       icons/w_icon_scav
+flashcolor       0.7  0.7  0.7
+flashsound       sound/weapons/scavenger/fire.wav
+altflashsound	 sound/weapons/scavenger/fire.wav
+ammotype         2
+ammolowcount     5
+energypershot    2
+firetime         100
+range            8192
+altenergypershot 8
+altfiretime      700
+altrange         8192
+missileFuncName		scavengerfunc
+altmissileFuncName	scavengerfunc
+missileHitSound		sound/weapons/scavenger/hit_wall.wav
+}
+
+// WP_BOT_ROCKET
+{
+weapontype   	 WP_BOT_ROCKET
+weaponclass  	 weapon_botrocket
+weaponmodel  	 models/weapons2/noweap/noweap.md3
+weaponIcon  	 icons/w_icon_tricorder
+ammotype     	 3
+ammolowcount 	 5
+energypershot    0
+flashcolor       0.6  0.6   1
+flashsound		 sound/weapons/hunter_seeker/fire.wav
+altflashsound	 sound/weapons/hunter_seeker/firelaser.wav
+firetime         400
+missileLight     100
+missileLightColor 1.0 0.75 0.4
+missileModel	 models/players/hunterseeker/projectile.md3
+missileFuncName	 botrocketfunc
+missileHitSound  sound/weapons/hunter_seeker/hit_wall.wav
+range            8192
+altenergypershot 0
+altfiretime      200
+altrange         8192
+}
+
+// WP_FORGE_PROJ
+{
+weapontype   	WP_FORGE_PROJ
+weaponclass  	weapon_forge_proj
+weaponmodel  	models/weapons2/tricorder/reaver.md3
+weaponIcon  	icons/w_icon_tricorder
+ammotype     	3
+ammolowcount 	5
+energypershot    0
+flashcolor       0 0 0
+flashsound		sound/weapons/reaver/fire.wav
+firetime		100
+range			8192
+altenergypershot	0
+firetime			400
+altrange			8192
+missileFuncName		forgeprojfunc
+missileHitSound		sound/weapons/reaver/hit_wall.wav
+}
+
+// WP_FORGE_PSYCH
+{
+weapontype   	WP_FORGE_PSYCH
+weaponclass  	weapon_forge_psych
+weaponmodel  	models/weapons2/noweap/noweap.md3
+weaponIcon  	icons/w_icon_tricorder
+ammotype     	3
+ammolowcount 	5
+energypershot   0
+flashcolor      0 0 0
+flashsound		sound/weapons/avatar/fire.wav
+firetime         400
+range            8192
+missileFuncName		forgepsychfunc
+missileHitSound  sound/weapons/avatar/hit_wall.wav
+}
+
+// WP_PARASITE
+{
+weapontype   	WP_PARASITE
+weaponclass  	weapon_parasite
+weaponmodel  	models/weapons2/noweap/noweap.md3
+weaponIcon  	icons/w_icon_tricorder
+ammotype     	3
+ammolowcount 	5
+energypershot   0
+flashcolor      0 0 0
+flashsound		sound/weapons/parasite/fire.wav
+firetime         100
+range            8192
+missileFuncName		parasiteacidfunc
+missileHitSound  sound/weapons/parasite/hit_wall.wav
+}
+
+// WP_MELEE
+{
+weapontype   	WP_MELEE
+weaponclass  	weapon_melee
+weaponmodel  	models/weapons2/noweap/noweap.md3
+weaponIcon  	icons/w_icon_tricorder
+ammotype     	3
+ammolowcount 	5
+energypershot   0
+flashcolor      0 0 0
+firetime         0
+range            1024
+}
+
+// WP_STASIS_ATTACK
+{
+weapontype   	WP_STASIS_ATTACK
+weaponclass  	weapon_stasis_attack
+weaponmodel  	models/weapons2/noweap/noweap.md3
+weaponIcon  	icons/w_icon_tricorder
+ammotype     	3
+ammolowcount 	5
+energypershot   0
+flashcolor      0 0 0
+flashsound		sound/weapons/stasis_alien/fire.wav
+firetime         0
+range            1024
+missileFuncName		stasisattackfunc
+missileHitSound  sound/weapons/stasis_alien/hit_wall.wav
+}
+
+// WP_DN_TURRET
+{
+weapontype   	WP_DN_TURRET
+weaponclass  	weapon_dn_turret
+weaponmodel  	models/weapons2/noweap/noweap.md3
+weaponIcon  	icons/w_icon_tricorder
+ammotype     	2
+ammolowcount 	5
+energypershot   0
+flashcolor      0 0 0
+flashsound		sound/weapons/loader_arms/fire.wav
+firetime         400
+range            1024
+missileFuncName		dnturretfunc
+}
+
+// WP_BLUE_HYPO
+{
+weapontype   	WP_BLUE_HYPO
+weaponclass  	weapon_blue_hypo
+weaponmodel  	models/weapons2/hypo/hypo_blue.md3
+weaponIcon  	icons/w_icon_hypo_blue
+ammotype        3
+ammolowcount 	5
+energypershot   0
+flashsound       sound/items/jetpuffmed.wav
+flashcolor      0 0 0
+firetime         400
+range            1024
+}
+
+// WP_RED_HYPO
+{
+weapontype   	WP_RED_HYPO
+weaponclass  	weapon_red_hypo
+weaponmodel  	models/weapons2/hypo/hypo_red.md3
+weaponIcon  	icons/w_icon_hypo_red
+ammotype         3
+ammolowcount 	5
+energypershot   0
+flashsound       sound/items/jetpuffmed.wav
+flashcolor      0 0 0
+firetime         400
+range            96
+}
+
+// WP_VOYAGER_HYPO
+{
+weapontype   	WP_VOYAGER_HYPO
+weaponclass  	weapon_voyager_hypo
+weaponmodel  	models/weapons2/tricorder/hypo.md3
+weaponIcon  	icons/w_icon_hypo
+ammotype         3
+ammolowcount     40
+energypershot    20
+flashsound       sound/items/jetpuffmed.wav
+flashcolor      0 0 0
+firetime         400
+range            96
+}
+
+// WP_PROTON_GUN
+{
+weapontype       WP_PROTON_GUN
+weaponclass      weapon_proton_gun
+weaponmodel      models/weapons2/proton/test.md3
+weaponIcon       icons/w_icon_proton
+flashcolor       0.36  0.36  0.36
+flashsound       sound/weapons/proton/raygun.wav
+altflashsound    sound/weapons/proton/raygun.wav
+ammotype         1
+ammolowcount     15
+energypershot    2
+firetime         400
+range            8192
+altenergypershot 2
+altfiretime      400
+altrange         8192
+}
+
+// WP_KLINGON_BLADE
+{
+weapontype   	WP_KLINGON_BLADE
+weaponclass  	weapon_klingon_blade
+weaponmodel  	models/weapons2/tricorder/klingon_knife.md3
+weaponIcon  	icons/w_icon_tricorder
+ammotype     	0
+ammolowcount 	5
+energypershot   0
+flashcolor      0 0 0
+firetime         400
+range            96
+}
+
+// WP_IMPERIAL_BLADE
+{
+weapontype   	WP_IMPERIAL_BLADE
+weaponclass  	weapon_imperial_blade
+weaponmodel  	models/weapons2/tricorder/imperial_knife.md3
+weaponIcon  	icons/w_icon_tricorder
+ammotype     	0
+ammolowcount 	5
+energypershot   0
+flashcolor      0 0 0
+firetime         400
+range            96
+}
+
+// WP_PALADIN
+{
+weapontype   	WP_PALADIN
+weaponclass  	weapon_paladin
+weaponmodel  	models/weapons2/tricorder/klingon_knife.md3
+weaponIcon  	icons/w_icon_tricorder
+ammotype     	0
+ammolowcount 	5
+energypershot   0
+flashsound      sound/weapons/crossbow/fire.wav
+flashcolor      0 0 0
+missilesound	sound/weapons/crossbow/fly.wav
+missileHitSound sound/weapons/crossbow/hit.wav
+missileFuncName	paladinfunc
+firetime         400
+range            96
+}
+
+// WP_DESPERADO
+{
+weapontype   	WP_DESPERADO
+weaponclass  	weapon_desperado
+weaponmodel  	models/weapons2/tricorder/klingon_knife.md3
+weaponIcon  	icons/w_icon_tricorder
+ammotype     	0
+ammolowcount 	5
+energypershot   0
+flashsound      sound/weapons/rifle/fire.wav
+flashcolor      0 0 0
+firetime         400
+range            96
+}
+
+// AMMO_NONE
+{
+AMMOTYPE AMMO_NONE
+}
+
+// AMMO_STARFLEET
+{
+AMMO     AMMO_STARFLEET
+AMMOMAX   300
+}
+
+// AMMO_ALIEN
+{
+AMMO     AMMO_ALIEN
+AMMOMAX  300
+}
+
+// AMMO_PHASER
+{
+AMMO     AMMO_PHASER
+AMMOMAX  100
+}
+

@@ -1,0 +1,558 @@
+//    EXTERNAL ITEM DATA 
+//
+
+//Fields
+//pickupsound	STRING; DEFAULT = sound/weapons/w_pkup.wav
+//itemname		STRING;
+//classname		STRING;
+//count			INT;	ammount of ammo or health given with item
+//icon			STRING;
+//min			VECTOR;	item bounds min, DEFAULT = -16 -16 -2
+//max			VECTOR;	item bounds max, DEFAULT = 16 16 16
+//pickupname	STRING; name to show in inventory
+//tag			ENUM;	WP_, or AMMO_
+//type			ENUM;	IT_WEAPON, IT_AMMO, IT_ARMOR, IT_HEALTH
+//worldmodel	STRING; model to show on ground or in hand
+
+{
+itemname	ITM_PHASER_PICKUP
+
+classname	weapon_phaser
+worldmodel	models/weapons2/phaser/phaser_w.md3
+icon		icons/w_icon_phaser
+// Amount of ammo given with weapon
+count		50
+pickupname	"Phaser"
+type		IT_WEAPON
+tag		WP_PHASER
+}
+
+
+{
+itemname	ITM_COMPRESSION_RIFLE_PICKUP
+
+classname	weapon_compression_rifle
+worldmodel	models/weapons2/prifle/prifle_w.md3
+icon		icons/w_icon_rifle
+// Amount of ammo given with weapon
+count		50
+pickupname	"Compression Rifle"
+type		IT_WEAPON
+tag		WP_COMPRESSION_RIFLE
+}
+
+
+{
+itemname	ITM_IMOD_PICKUP
+
+classname	weapon_IMOD
+worldmodel	models/weapons2/imod/imod2_w.md3
+icon		icons/w_icon_imod
+// Amount of ammo given with weapon
+count		50
+pickupname	"IMOD (Infinity Modulator)"
+type		IT_WEAPON
+tag		WP_IMOD
+min		-16 -16 -4
+}
+
+
+{
+itemname     ITM_SCAVENGER_RIFLE_PICKUP
+
+classname    weapon_scavenger_rifle
+worldmodel   models/weapons2/scavenger/scavenger_w.md3
+icon         icons/w_icon_scav
+// Amount of ammo given with weapon
+count		50
+pickupname   "Scavenger Rifle"
+type         IT_WEAPON
+tag          WP_SCAVENGER_RIFLE
+min		-16 -16 -4
+}
+
+
+{
+itemname	ITM_STASIS_PICKUP
+
+classname	weapon_stasis
+worldmodel	models/weapons2/stasis/stasis_w.md3
+icon		icons/w_icon_stasis
+// Amount of ammo given with weapon
+count		50
+pickupname	"Stasis Weapon"
+type		IT_WEAPON
+tag		WP_STASIS
+min		-16 -16 -4
+}
+
+
+{
+itemname	ITM_GRENADE_LAUNCHER_PICKUP
+
+classname	weapon_grenade_launcher
+worldmodel	models/weapons2/launcher/launcher_w.md3
+icon		icons/w_icon_grenade
+// Amount of ammo given with weapon
+count		50
+pickupname	"Grenade Launcher"
+type		IT_WEAPON
+tag		WP_GRENADE_LAUNCHER
+min		-16 -16 -4
+}
+
+
+{
+itemname	ITM_TETRION_DISRUPTOR_PICKUP
+
+classname	weapon_tetrion_disruptor
+worldmodel	models/weapons2/tpd/tpd_w.md3
+icon		icons/w_icon_tetrion
+// Amount of ammo given with weapon
+count		50
+pickupname	"Tetryon Disruptor"
+type		IT_WEAPON
+tag		WP_TETRION_DISRUPTOR
+}
+ 
+  
+{
+itemname	ITM_DREADNOUGHT_PICKUP
+
+classname	weapon_dreadnought
+worldmodel	models/weapons2/arc_welder/arc_w.md3
+icon		icons/dm_a_arc_sm
+// Amount of ammo given with weapon
+count		50
+pickupname	"Dreadnought Weapon"
+type		IT_WEAPON
+tag		WP_DREADNOUGHT
+}
+
+
+{
+itemname	ITM_QUANTUM_BURST_PICKUP
+
+classname	weapon_quantum_burst
+worldmodel	models/weapons2/q_burst/q_burst_w.md3
+icon		icons/dm_torpedo_sm
+// Amount of ammo given with weapon
+count		50
+pickupname	"Photon Burst"
+type		IT_WEAPON
+tag		WP_QUANTUM_BURST
+}
+
+
+{
+itemname	ITM_TRICORDER_PICKUP
+
+classname	weapon_tricorder
+worldmodel	models/weapons2/tricorder/tricorder_w.md3
+icon		icons/w_icon_tricorder
+// Amount of ammo given with weapon
+count		50
+pickupname	"Tricorder"
+type		IT_WEAPON
+tag		WP_TRICORDER
+max		-8 -8 0
+min		-8 -8 -4
+}
+
+{
+itemname	ITM_PROTON_GUN_PICKUP
+
+classname	weapon_proton_gun
+worldmodel	models/weapons2/proton/test_w.md3
+icon		icons/w_icon_rifle
+// Amount of ammo given with weapon
+count		50
+pickupname	"Proton Gun"
+type		IT_WEAPON
+tag		WP_PROTON_GUN
+}
+
+//-------------------------------------
+// BORG WEAPONS
+//-------------------------------------
+{
+itemname	ITM_BORG_WEAPON_PICKUP
+
+classname	weapon_borg_weapon
+worldmodel	models/weapons2/borg/claw-1_w.md3
+icon		icons/w_icon_phaser
+// Amount of ammo given with weapon
+count		50
+pickupname	"BORG WEAPON"
+type		IT_WEAPON
+tag		WP_BORG_WEAPON
+}
+
+{
+itemname	ITM_BORG_TASER_PICKUP
+
+classname	weapon_borg_taser
+worldmodel	models/weapons2/borg/pincers.md3
+icon		icons/w_icon_phaser
+// Amount of ammo given with weapon
+count		50
+pickupname	"BORG TASER - DEV ONLY"
+type		IT_WEAPON
+tag		WP_BORG_TASER
+}
+
+
+{
+itemname	ITM_BORG_ASSIMILATOR_PICKUP
+
+classname	weapon_borg_assimilator
+worldmodel	models/weapons2/borg/hand_w.md3
+icon		icons/w_icon_borg_assimilator
+// Amount of ammo given with weapon
+count		50
+pickupname	"BORG ASSIM - DEV ONLY"
+type		IT_WEAPON
+tag		WP_BORG_ASSIMILATOR
+}
+
+
+{
+itemname	ITM_BORG_DRILL_PICKUP
+
+classname	weapon_borg_drill
+worldmodel	models/weapons2/borg/drill.md3
+icon		icons/w_icon_phaser
+// Amount of ammo given with weapon
+count		50
+pickupname	"BORG DRILL - DEV ONLY"
+type		IT_WEAPON
+tag		WP_BORG_DRILL
+}
+
+{
+itemname	ITM_BOT_WELDER_PICKUP
+
+classname	weapon_botwelder
+worldmodel	models/weapons2/noweap/noweap.md3
+icon		icons/w_icon_phaser
+// Amount of ammo given with weapon
+count		400
+pickupname	"Bot Welder"
+type		IT_WEAPON
+tag		WP_BOT_WELDER
+}
+
+
+{
+itemname	ITM_CHAOS_PICKUP
+
+classname	weapon_chaos_gun
+worldmodel	models/weapons2/chaotica_guard/test_w.md3
+icon		icons/w_icon_phaser
+// Amount of ammo given with weapon
+count		400
+pickupname	"Chaos Blaster"
+type		IT_WEAPON
+tag			WP_CHAOTICA_GUARD_GUN
+}
+
+{
+itemname	ITM_BOT_ROCKET_PICKUP
+
+classname	weapon_botrocket
+worldmodel	models/weapons2/noweap/noweap.md3
+icon		icons/w_icon_phaser
+// Amount of ammo given with weapon
+count		400
+pickupname	"Bot Rocket"
+type		IT_WEAPON
+tag		WP_BOT_ROCKET
+}
+
+{
+itemname	ITM_FORGE_PROJ_PICKUP
+
+classname	weapon_forge_proj
+worldmodel	models/weapons2/phaser/reaver.md3
+icon		icons/w_icon_phaser
+// Amount of ammo given with weapon
+count		400
+pickupname	"Forge Proj"
+type		IT_WEAPON
+tag		WP_FORGE_PROJ
+}
+
+{
+itemname	ITM_FORGE_PSYCH_PICKUP
+
+classname	weapon_forge_psych
+worldmodel	models/weapons2/noweap/noweap.md3
+icon		icons/w_icon_phaser
+// Amount of ammo given with weapon
+count		400
+pickupname	"Forge Psych"
+type		IT_WEAPON
+tag		WP_FORGE_PSYCH
+}
+
+{
+itemname	ITM_PARASITE_PICKUP
+
+classname	weapon_parasite
+worldmodel	models/weapons2/phaser/phaser_w.md3
+icon		icons/w_icon_phaser
+// Amount of ammo given with weapon
+count		400
+pickupname	"Parasite"
+type		IT_WEAPON
+tag		WP_PARASITE
+}
+
+{
+itemname	ITM_MELEE
+
+classname	weapon_melee
+worldmodel	models/weapons2/noweap/noweap.md3
+icon		icons/w_icon_phaser
+// Amount of ammo given with weapon
+count		400
+pickupname	"Melee"
+type		IT_WEAPON
+tag			WP_MELEE
+min			-16 -16 -2
+max			16 16 16
+}
+
+{
+itemname	ITM_STASIS_ATTACK
+
+classname	weapon_stasis_attack
+worldmodel	models/weapons2/phaser/phaser_w.md3
+icon		icons/w_icon_phaser
+// Amount of ammo given with weapon
+count		400
+pickupname	"Stasis Attack"
+type		IT_WEAPON
+tag			WP_STASIS_ATTACK
+min			-16 -16 -2
+max			16 16 16
+}
+
+{
+itemname	ITM_DN_TURRET_PICKUP
+
+classname	weapon_dn_turret
+worldmodel	models/weapons2/noweap/noweap.md3
+icon		icons/w_icon_stasis
+// Amount of ammo given with weapon
+count		400
+pickupname	"DN Turret Weapon"
+type		IT_WEAPON
+tag			WP_DN_TURRET
+min		-16 -16 -4
+}
+
+{
+itemname	ITM_BLUE_HYPO
+
+classname	weapon_blue_hypo
+worldmodel	models/weapons2/hypo/hypo_blue_w.md3
+icon		icons/w_icon_hypo_blue
+// Amount of ammo given with weapon
+count		400
+pickupname	"Veritrax 12 - Truth Serum"
+type		IT_WEAPON
+tag			WP_BLUE_HYPO
+min		-16 -16 -4
+}
+
+{
+itemname	ITM_RED_HYPO
+
+classname	weapon_red_hypo
+worldmodel	models/weapons2/hypo/hypo_red_w.md3
+icon		icons/w_icon_hypo_red
+// Amount of ammo given with weapon
+count		400
+pickupname	"Solinol - Tranquilizer"
+type		IT_WEAPON
+tag			WP_RED_HYPO
+min		-16 -16 -4
+}
+
+{
+itemname	ITM_VOYAGER_HYPO
+
+classname	weapon_voyager_hypo
+worldmodel	models/weapons2/tricorder/hypo_w.md3
+icon		icons/w_icon_hypo
+// Amount of ammo given with weapon
+count		400
+pickupname	"Health Hypo"
+type		IT_WEAPON
+tag			WP_VOYAGER_HYPO
+max		-8 -8 0
+min		-8 -8 -4
+}
+
+{
+itemname	ITM_KLINGON_BLADE
+
+classname	weapon_klingon_blade
+worldmodel	models/weapons2/tricorder/klingon_knife.md3
+icon		icons/w_icon_stasis
+// Amount of ammo given with weapon
+count		400
+pickupname	"Klingon Blade"
+type		IT_WEAPON
+tag			WP_KLINGON_BLADE
+max		-8 -8 0
+min		-8 -8 -4
+}
+
+{
+itemname	ITM_IMPERIAL_BLADE
+
+classname	weapon_imperial_blade
+worldmodel	models/weapons2/tricorder/imperial_knife.md3
+icon		icons/w_icon_stasis
+// Amount of ammo given with weapon
+count		400
+pickupname	"Imperial Blade"
+type		IT_WEAPON
+tag			WP_IMPERIAL_BLADE
+max		-8 -8 0
+min		-8 -8 -4
+}
+
+{
+itemname	ITM_DESPERADO_WEAPON
+
+classname	weapon_bandito
+worldmodel	models/weapons2/winchester/winchester_w.md3
+icon		icons/w_icon_stasis
+// Amount of ammo given with weapon
+count		400
+pickupname	"Desperado Weapon"
+type		IT_WEAPON
+tag			WP_DESPERADO
+min		-16 -16 -4
+}
+
+{
+itemname	ITM_PALADIN_WEAPON
+
+classname	weapon_paladin
+worldmodel	models/weapons2/crossbow/crossbow_w.md3
+icon		icons/w_icon_stasis
+// Amount of ammo given with weapon
+count		400
+pickupname	"Paladin Weapon"
+type		IT_WEAPON
+tag			WP_PALADIN
+min		-16 -16 -4
+}
+
+//
+//Items
+//
+
+{
+itemname	ITM_ISODESIUM_PICKUP
+
+classname	isodesium_pickup
+worldmodel	models/mapobjects/scavenger/dcrystal.md3
+icon		icons/w_icon_phaser
+count		50
+pickupname	"Isodesium"
+type		IT_HOLDABLE
+tag		ISODESIUM
+min		-10 -10 -5
+max		10 10 24
+}
+
+{
+itemname	ITM_STARFLEET_HELMET
+
+classname	starfleet_helmet_pickup
+worldmodel	models/boltons/helmet.md3
+icon		icons/w_icon_phaser
+count		50
+pickupname	"Starfleet Helmet"
+type		IT_HOLDABLE
+tag			STARFLEET_HELMET
+min			-10 -10 -3
+max			10 10 16
+}
+
+{
+itemname	ITM_AMMO_CRYSTAL_BORG
+
+classname	ammo_crystal_borg
+worldmodel	models/mapobjects/borg/alien_ammo.md3
+icon		icons/w_icon_phaser
+count		100
+pickupname	"Ammunition Crystal"
+type		IT_AMMO
+tag		AMMO_ALIEN
+max		 8  8 16
+min		-8 -8 -0
+}
+
+{
+itemname	ITM_AMMO_CRYSTAL_DN
+
+classname	ammo_crystal_dn
+worldmodel	models/mapobjects/dn/alien_ammo.md3
+icon		icons/w_icon_phaser
+count		100
+pickupname	"Ammunition Crystal"
+type		IT_AMMO
+tag		AMMO_ALIEN
+max		 8  8 16
+min		-8 -8 -0
+}
+
+
+{
+itemname	ITM_AMMO_CRYSTAL_FORGE
+
+classname	ammo_crystal_forge
+worldmodel	models/mapobjects/forge/alien_ammo.md3
+icon		icons/w_icon_phaser
+count		100
+pickupname	"Ammunition Crystal"
+type		IT_AMMO
+tag		AMMO_ALIEN
+max		 8  8 16
+min		-8 -8 -0
+}
+
+{
+itemname	ITM_AMMO_CRYSTAL_SCAVENGER
+
+classname	ammo_crystal_scavenger
+worldmodel	models/mapobjects/scavenger/alien_ammo.md3
+icon		icons/w_icon_phaser
+count		100
+pickupname	"Ammunition Crystal"
+type		IT_AMMO
+tag		AMMO_ALIEN
+max		 8  8 16
+min		-8 -8 -0
+}
+
+{
+itemname	ITM_AMMO_CRYSTAL_STASIS
+
+classname	ammo_crystal_stasis
+worldmodel	models/mapobjects/stasis/alien_ammo.md3
+icon		icons/w_icon_phaser
+count		100
+pickupname	"Ammunition Crystal"
+type		IT_AMMO
+tag		AMMO_ALIEN
+max		 8  8 16
+min		-8 -8 -0
+}
+

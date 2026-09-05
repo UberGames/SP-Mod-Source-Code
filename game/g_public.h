@@ -134,8 +134,17 @@ typedef struct {
 	// Savegame handling
 	//
 	qboolean	(*AppendToSaveGame)(unsigned long chid, void *data, int length);
-	int			(*ReadFromSaveGame)(unsigned long chid, void *pvAddress, int iLength, void **ppvAddressPtr = NULL);
-	int			(*ReadFromSaveGameOptional)(unsigned long chid, void *pvAddress, int iLength, void **ppvAddressPtr = NULL);
+	// VC6 accepted a default argument on these function-pointer members; newer
+	// compilers do not, so the pointer is wrapped in a callable of identical
+	// layout that supplies the default.  Calls and assignments read as before.
+	typedef int (*ReadFromSaveGameProc_t)(unsigned long chid, void *pvAddress, int iLength, void **ppvAddressPtr);
+	struct ReadFromSaveGameFn_t {
+		ReadFromSaveGameProc_t	fn;
+		int operator()(unsigned long chid, void *pvAddress, int iLength, void **ppvAddressPtr = 0) const { return fn(chid, pvAddress, iLength, ppvAddressPtr); }
+		operator ReadFromSaveGameProc_t() const { return fn; }
+	};
+	ReadFromSaveGameFn_t	ReadFromSaveGame;
+	ReadFromSaveGameFn_t	ReadFromSaveGameOptional;
 
 	// add commands to the console as if they were typed in
 	// for map changing, etc

@@ -60,7 +60,15 @@ typedef struct interface_export_s
 	//Save / Load functions
 
 	int				(*I_WriteSaveData)( unsigned long chid, void *data, int length );
-	int				(*I_ReadSaveData)( unsigned long chid, void *address, int length, void **addressptr = NULL );
+	// see game_import_t::ReadFromSaveGame: a function pointer with a default
+	// argument, wrapped so modern compilers accept it
+	typedef int (*I_ReadSaveDataProc_t)( unsigned long chid, void *address, int length, void **addressptr );
+	struct I_ReadSaveDataFn_t {
+		I_ReadSaveDataProc_t	fn;
+		int operator()( unsigned long chid, void *address, int length, void **addressptr = 0 ) const { return fn( chid, address, length, addressptr ); }
+		I_ReadSaveDataFn_t &operator=( I_ReadSaveDataProc_t f ) { fn = f; return *this; }
+	};
+	I_ReadSaveDataFn_t	I_ReadSaveData;
 	int				(*I_LinkEntity)( int entID, CSequencer *sequencer, CTaskManager *taskManager );
 
 } interface_export_t;

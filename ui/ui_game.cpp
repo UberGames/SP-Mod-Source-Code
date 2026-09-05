@@ -510,7 +510,7 @@ static void UI_WipeTourHubSaveDirectory (void)
 	char	*holdChar;
 	int		len;
 	int		fileCnt;
-	char	commandString[32];
+	char	commandString[MAX_SAVELOADNAME + 32];
 
 	// Clear out save data
 	memset(s_savedata,0,sizeof(s_savedata));
@@ -984,7 +984,7 @@ SaveGameFile
 */
 void SaveGameFile(char *fileName)
 {
-	char	commandString[20];
+	char	commandString[MAX_SAVELOADNAME + 32];
 
 	// Save description line
 	ui.SG_StoreSaveGameComment(s_file_desc_field.field.buffer);
@@ -1011,7 +1011,7 @@ SaveGame_MenuEvent
 static void SaveGame_MenuEvent( void* ptr, int notification )
 {
 	menuframework_s*	m;
-	char fileName[MAX_SAVELOADNAME],commandString[20];
+	char fileName[MAX_SAVELOADNAME],commandString[MAX_SAVELOADNAME + 32];
 	int index;
 
 	if (notification != QM_ACTIVATED)

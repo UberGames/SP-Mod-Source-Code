@@ -1,7 +1,7 @@
 // Hunter Seeker weapon effects
 
 #include "cg_local.h"
-#include "fx_public.h"
+#include "FX_Public.h"
 
 #define	SMOKE_TRAIL_MIN_DISTANCE	2
 

@@ -1,13 +1,13 @@
 // Tokenizer.cpp
 #ifndef NOT_USING_MODULES
 // !!! if you are not using modules, read BELOW !!!
-#include "Module.h" // if you are not using modules, 
+#include "module.h" // if you are not using modules, 
 					// create an empty Module.h in your
 					// project -- use of modules allows
 					// the error handler to be overridden
 					// with a custom CErrHandler
 #endif
-#include "Tokenizer.h"
+#include "tokenizer.h"
 
 
 enum

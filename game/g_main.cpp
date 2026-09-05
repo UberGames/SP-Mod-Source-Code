@@ -3,7 +3,7 @@
 #include "g_functions.h"
 #include "Q3_Interface.h"
 #include "g_nav.h"
-#include "boltOns.h"
+#include "boltons.h"
 #include "g_roff.h"
 #include "g_navigator.h"
 #include "anims.h"

@@ -3,7 +3,7 @@
 //#include "Q3_Interface.h"
 //#include "anims.h"
 //#include "b_local.h"
-#include "..\cgame\cg_camera.h"
+#include "../cgame/cg_camera.h"
 
 /*
 #define MAX_CAMERA_GROUP_SUBJECTS	16

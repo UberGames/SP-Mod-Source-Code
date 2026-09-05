@@ -1,7 +1,7 @@
 #include "g_local.h"
 #include "g_functions.h"
 #include "anims.h"
-#include "boltOns.h"
+#include "boltons.h"
 
 extern void Q3_DebugPrint( int level, const char *format, ... );
 // g_client.c -- client functions that don't happen every frame

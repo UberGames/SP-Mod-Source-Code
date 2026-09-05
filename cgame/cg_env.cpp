@@ -1,7 +1,7 @@
 //This file contains environmental effects for the designers
 
 #include "cg_local.h"
-#include "fx_public.h"
+#include "FX_Public.h"
 
 extern void G_RadiusDamage ( vec3_t origin, gentity_t *attacker, float damage, float radius,
 					 gentity_t *ignore, int mod);

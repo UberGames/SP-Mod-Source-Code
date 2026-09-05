@@ -4,12 +4,13 @@
 #include "bg_public.h"
 #include "g_public.h"
 #include "b_public.h"
-#include "../ICARUS/ICARUS.h"
+#include "../icarus/icarus.h"
 #include "../renderer/tr_types.h"
 #include "../cgame/cg_public.h"
 #include "bset.h"
 
-#define	FOFS(x) ((int)&(((gentity_t *)0)->x))
+#include <stddef.h>	// offsetof
+#define	FOFS(x) ((int)offsetof(gentity_t, x))
 
 typedef enum //# taskID_e
 {

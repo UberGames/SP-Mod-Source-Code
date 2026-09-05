@@ -4,8 +4,8 @@
 #include "cg_local.h"
 #include "cg_media.h"
 #include "cg_text.h"
-#include "..\game\objectives.h"
-#include "..\game\speakers.h"
+#include "../game/objectives.h"
+#include "../game/speakers.h"
 
 
 qboolean G_ParseInt( char **data, int *i );

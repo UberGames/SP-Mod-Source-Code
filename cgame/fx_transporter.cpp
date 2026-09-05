@@ -1,8 +1,8 @@
 // Teleporter type effects
 
 #include "cg_local.h"
-#include "fx_public.h"
-#include "..\game\anims.h"
+#include "FX_Public.h"
+#include "../game/anims.h"
 
 /*
 -------------------------

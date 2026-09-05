@@ -1,7 +1,7 @@
 //Client camera controls for cinematics
 
 #include "cg_local.h"
-#include "..\game\g_roff.h"
+#include "../game/g_roff.h"
 
 bool		in_camera = false;
 camera_t	client_camera={0};

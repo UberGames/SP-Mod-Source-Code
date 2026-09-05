@@ -2,8 +2,8 @@
 #include "cg_local.h"
 #include "cg_media.h"
 #include "cg_text.h"
-#include "..\game\objectives.h"
-#include "..\game\b_local.h"
+#include "../game/objectives.h"
+#include "../game/b_local.h"
 
 #define	SCOREBOARD_WIDTH	(26*BIGCHAR_WIDTH)
 

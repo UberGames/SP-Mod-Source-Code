@@ -1,9 +1,9 @@
 
 #define	CG_PLAYERS_CPP
 #include "cg_local.h"
-#include "fx_public.h"
-#include "..\game\anims.h"
-#include "..\game\boltOns.h"
+#include "FX_Public.h"
+#include "../game/anims.h"
+#include "../game/boltons.h"
 
 #define	LOOK_SWING_SCALE	0.5
 

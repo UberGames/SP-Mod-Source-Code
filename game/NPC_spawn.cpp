@@ -4,7 +4,7 @@
 #include "b_local.h"
 #include "anims.h"
 #include "g_functions.h"
-#include "boltOns.h"
+#include "boltons.h"
 
 extern cvar_t *g_sex;
 

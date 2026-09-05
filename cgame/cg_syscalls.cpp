@@ -18,10 +18,12 @@
 //prototypes
 extern void CG_PreInit();
 
-int (*syscall)( int arg, ... ) = (int (*)( int, ...))-1;
+// arguments travel as pointer-sized integers so the same code works in 32
+// and 64-bit builds; floats are passed by bit pattern (PASSFLOAT)
+intptr_t (*syscall)( intptr_t arg, ... ) = (intptr_t (*)( intptr_t, ...))-1;
 
 
-void dllEntry( int (*syscallptr)( int arg,... ) ) {
+void dllEntry( intptr_t (*syscallptr)( intptr_t arg,... ) ) {
 	syscall = syscallptr;
 	CG_PreInit();
 }
@@ -42,7 +44,7 @@ void	cgi_Error( const char *fmt ) {
 }
 
 int		cgi_Milliseconds( void ) {
-	return syscall( CG_MILLISECONDS ); 
+	return (int)syscall( CG_MILLISECONDS ); 
 }
 
 void	cgi_Cvar_Register( vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags ) {
@@ -58,7 +60,7 @@ void	cgi_Cvar_Set( const char *var_name, const char *value ) {
 }
 
 int		cgi_Argc( void ) {
-	return syscall( CG_ARGC );
+	return (int)syscall( CG_ARGC );
 }
 
 void	cgi_Argv( int n, char *buffer, int bufferLength ) {
@@ -70,15 +72,15 @@ void	cgi_Args( char *buffer, int bufferLength ) {
 }
 
 int		cgi_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode ) {
-	return syscall( CG_FS_FOPENFILE, qpath, f, mode );
+	return (int)syscall( CG_FS_FOPENFILE, qpath, f, mode );
 }
 
 int	cgi_FS_Read( void *buffer, int len, fileHandle_t f ) {
-	return syscall( CG_FS_READ, buffer, len, f );
+	return (int)syscall( CG_FS_READ, buffer, len, f );
 }
 
 int	cgi_FS_Write( const void *buffer, int len, fileHandle_t f ) {
-	return syscall( CG_FS_WRITE, buffer, len, f );
+	return (int)syscall( CG_FS_WRITE, buffer, len, f );
 }
 
 void	cgi_FS_FCloseFile( fileHandle_t f ) {
@@ -106,23 +108,23 @@ void	cgi_CM_LoadMap( const char *mapname ) {
 }
 
 int		cgi_CM_NumInlineModels( void ) {
-	return syscall( CG_CM_NUMINLINEMODELS );
+	return (int)syscall( CG_CM_NUMINLINEMODELS );
 }
 
 clipHandle_t cgi_CM_InlineModel( int index ) {
-	return syscall( CG_CM_INLINEMODEL, index );
+	return (int)syscall( CG_CM_INLINEMODEL, index );
 }
 
 clipHandle_t cgi_CM_TempBoxModel( const vec3_t mins, const vec3_t maxs ) {
-	return syscall( CG_CM_TEMPBOXMODEL, mins, maxs );
+	return (int)syscall( CG_CM_TEMPBOXMODEL, mins, maxs );
 }
 
 int		cgi_CM_PointContents( const vec3_t p, clipHandle_t model ) {
-	return syscall( CG_CM_POINTCONTENTS, p, model );
+	return (int)syscall( CG_CM_POINTCONTENTS, p, model );
 }
 
 int		cgi_CM_TransformedPointContents( const vec3_t p, clipHandle_t model, const vec3_t origin, const vec3_t angles ) {
-	return syscall( CG_CM_TRANSFORMEDPOINTCONTENTS, p, model, origin, angles );
+	return (int)syscall( CG_CM_TRANSFORMEDPOINTCONTENTS, p, model, origin, angles );
 }
 
 void	cgi_CM_BoxTrace( trace_t *results, const vec3_t start, const vec3_t end,
@@ -142,7 +144,7 @@ int		cgi_CM_MarkFragments( int numPoints, const vec3_t *points,
 				const vec3_t projection,
 				int maxPoints, vec3_t pointBuffer,
 				int maxFragments, markFragment_t *fragmentBuffer ) {
-	return syscall( CG_CM_MARKFRAGMENTS, numPoints, points, projection, maxPoints, pointBuffer, maxFragments, fragmentBuffer );
+	return (int)syscall( CG_CM_MARKFRAGMENTS, numPoints, points, projection, maxPoints, pointBuffer, maxFragments, fragmentBuffer );
 }
 
 void	cgi_S_StartSound( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx ) {
@@ -162,11 +164,11 @@ void	cgi_S_UpdateAmbientSet( const char *name, vec3_t origin ) {
 }
 
 int		cgi_S_AddLocalSet( const char *name, vec3_t listener_origin, vec3_t origin, int entID, int time ) {
-	return syscall( CG_S_ADDLOCALSET, name, listener_origin, origin, entID, time );
+	return (int)syscall( CG_S_ADDLOCALSET, name, listener_origin, origin, entID, time );
 }
 
 sfxHandle_t cgi_AS_GetBModelSound( const char *name, int stage ) {
-	return syscall( CG_AS_GETBMODELSOUND, name, stage );
+	return (int)syscall( CG_AS_GETBMODELSOUND, name, stage );
 }
 
 void	cgi_S_StartLocalSound( sfxHandle_t sfx, int channelNum ) {
@@ -190,7 +192,7 @@ void	cgi_S_Respatialize( int entityNum, const vec3_t origin, vec3_t axis[3], qbo
 }
 
 sfxHandle_t	cgi_S_RegisterSound( const char *sample ) {
-	return syscall( CG_S_REGISTERSOUND, sample );
+	return (int)syscall( CG_S_REGISTERSOUND, sample );
 }
 
 void	cgi_S_StartBackgroundTrack( const char *intro, const char *loop ) {
@@ -198,7 +200,7 @@ void	cgi_S_StartBackgroundTrack( const char *intro, const char *loop ) {
 }
 
 float	cgi_S_GetSampleLength( sfxHandle_t sfx ) {
-	return syscall( CG_S_GETSAMPLELENGTH, sfx);
+	return (float)(int)syscall( CG_S_GETSAMPLELENGTH, sfx);
 }
 
 void	cgi_FF_StartFX( int iFX ){
@@ -222,19 +224,19 @@ void	cgi_R_LoadWorldMap( const char *mapname ) {
 }
 
 qhandle_t cgi_R_RegisterModel( const char *name ) {
-	return syscall( CG_R_REGISTERMODEL, name );
+	return (int)syscall( CG_R_REGISTERMODEL, name );
 }
 
 qhandle_t cgi_R_RegisterSkin( const char *name ) {
-	return syscall( CG_R_REGISTERSKIN, name );
+	return (int)syscall( CG_R_REGISTERSKIN, name );
 }
 
 qhandle_t cgi_R_RegisterShader( const char *name ) {
-	return syscall( CG_R_REGISTERSHADER, name );
+	return (int)syscall( CG_R_REGISTERSHADER, name );
 }
 
 qhandle_t cgi_R_RegisterShaderNoMip( const char *name ) {
-	return syscall( CG_R_REGISTERSHADERNOMIP, name );
+	return (int)syscall( CG_R_REGISTERSHADERNOMIP, name );
 }
 
 void	cgi_R_ClearScene( void ) {
@@ -307,19 +309,19 @@ void		cgi_GetCurrentSnapshotNumber( int *snapshotNumber, int *serverTime ) {
 }
 
 qboolean	cgi_GetSnapshot( int snapshotNumber, snapshot_t *snapshot ) {
-	return syscall( CG_GETSNAPSHOT, snapshotNumber, snapshot );
+	return (int)syscall( CG_GETSNAPSHOT, snapshotNumber, snapshot );
 }
 
 qboolean	cgi_GetServerCommand( int serverCommandNumber ) {
-	return syscall( CG_GETSERVERCOMMAND, serverCommandNumber );
+	return (int)syscall( CG_GETSERVERCOMMAND, serverCommandNumber );
 }
 
 int			cgi_GetCurrentCmdNumber( void ) {
-	return syscall( CG_GETCURRENTCMDNUMBER );
+	return (int)syscall( CG_GETCURRENTCMDNUMBER );
 }
 
 qboolean	cgi_GetUserCmd( int cmdNumber, usercmd_t *ucmd ) {
-	return syscall( CG_GETUSERCMD, cmdNumber, ucmd );
+	return (int)syscall( CG_GETUSERCMD, cmdNumber, ucmd );
 }
 
 void		cgi_SetUserCmdValue( int stateValue, float sensitivityScale ) {

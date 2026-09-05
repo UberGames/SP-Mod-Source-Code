@@ -376,7 +376,7 @@ void EnumerateField(field_t *pField, byte *pbBase)
 
 			for (int i=0; i<MAX_ALERT_EVENTS; i++)
 			{
-				p[i].owner = (gentity_t *) GetGEntityNum(p[i].owner);
+				p[i].owner = (gentity_t *)(intptr_t) GetGEntityNum(p[i].owner);
 			}
 		}
 		break;
@@ -482,7 +482,7 @@ void EvaluateField(field_t *pField, byte *pbBase, byte *pbOriginalRefData/* may 
 
 			for (int i=0; i<MAX_ALERT_EVENTS; i++)
 			{
-				p[i].owner = GetGEntityPtr((int)(p[i].owner));
+				p[i].owner = GetGEntityPtr((int)(intptr_t)(p[i].owner));
 			}
 		}
 		break;

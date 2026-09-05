@@ -3,9 +3,9 @@
 #ifndef __SEQUENCE__
 #define __SEQUENCE__
 
-#include "BlockStream.h"
+#include "blockstream.h"
 #include "Interface.h"
-#include "TaskManager.h"
+#include "taskmanager.h"
 
 class ICARUS_Instance;
 

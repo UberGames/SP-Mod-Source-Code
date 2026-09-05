@@ -1,6 +1,6 @@
 //FX System memory manager
 
-#include "CG_Local.h"
+#include "cg_local.h"
 #include "FX_Public.h"
 
 //STL Helper macros

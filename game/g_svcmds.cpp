@@ -1,6 +1,6 @@
 
 #include "g_local.h"
-#include "boltOns.h"
+#include "boltons.h"
 
 extern int ICARUS_RunScript( gentity_t *ent, const char *name );
 extern team_t TranslateTeamName( const char *name );

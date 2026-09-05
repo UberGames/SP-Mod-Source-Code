@@ -1,7 +1,7 @@
 
 #include "g_local.h"
 #include "g_functions.h"
-#include "..\cgame\cg_local.h"
+#include "../cgame/cg_local.h"
 #include "Q3_Interface.h"
 
 #define	SLOWDOWN_DIST	128.0f

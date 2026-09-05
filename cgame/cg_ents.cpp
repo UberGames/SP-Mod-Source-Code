@@ -1,9 +1,9 @@
 // cg_ents.c -- present snapshot entities, happens every single frame
 
 #include "cg_local.h"
-#include "fx_public.h"
-#include "..\game\g_functions.h"
-#include "..\game\boltOns.h"
+#include "FX_Public.h"
+#include "../game/g_functions.h"
+#include "../game/boltons.h"
 
 extern qboolean CG_ApplyBoltOnToRefEnt (refEntity_t *newBoltOn, boltOn_t *boltOn, boltOnInfo_t *bOInfo, const vec3_t org, refEntity_t *targModel);
 extern void CG_AssimilationTubules( vec3_t start, vec3_t end, vec3_t up, float scale );

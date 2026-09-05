@@ -1,5 +1,5 @@
 #include "cg_local.h"
-#include "..\game\anims.h"
+#include "../game/anims.h"
 #include "cg_media.h"
 
 /////////////////////  this is a bit kludgy, but it only gives access to one

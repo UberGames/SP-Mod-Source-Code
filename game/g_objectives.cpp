@@ -134,19 +134,16 @@ void OBJ_ParseObjectives(char *buffer)
 	char *holdText;
 
 	//initialize the text data jic we fall short
-	_asm {
-		lea edi, mission_objective_text
-		mov ecx, MAX_OBJECTIVES
-		mov eax, defstr
-		rep stosd
+	// (was inline x86 "rep stosd"; plain loops so it builds on any target)
+	for ( i = 0; i < MAX_OBJECTIVES; i++ )
+	{
+		mission_objective_text[i] = (char *)defstr;
 	}
-
-	_asm {
-		lea edi, tour_objective_text
-		mov ecx, MAX_TOUR_OBJECTIVES
-		mov eax, defstr
-		rep stosd
+	for ( i = 0; i < MAX_TOUR_OBJECTIVES; i++ )
+	{
+		tour_objective_text[i] = (char *)defstr;
 	}
+	i = 0;
 
 	COM_BeginParseSession();
 	
@@ -221,11 +218,13 @@ void OBJ_ParseTactical(char *buffer)
 	memset(&tactical_info,0,sizeof(tactical_info));
 
 	//now initialize the text data as well.
-	_asm {
-		lea edi, tactical_text
-		mov ecx, MAX_TACTICAL_TXT
-		mov eax, defstr
-		rep stosd
+	// (was inline x86 "rep stosd"; plain loop so it builds on any target)
+	{
+		int t;
+		for ( t = 0; t < MAX_TACTICAL_TXT; t++ )
+		{
+			tactical_text[t] = (char *)defstr;
+		}
 	}
 
 	COM_BeginParseSession();

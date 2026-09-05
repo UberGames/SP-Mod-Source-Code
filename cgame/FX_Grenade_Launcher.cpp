@@ -1,7 +1,7 @@
 // Federation Grenade Launcher FX
 
 #include "cg_local.h"
-#include "fx_public.h"
+#include "FX_Public.h"
 
 /*
 -------------------------

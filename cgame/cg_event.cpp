@@ -2,7 +2,7 @@
 
 #include "cg_local.h"
 #include "cg_media.h"
-#include "..\game\anims.h"
+#include "../game/anims.h"
 
 extern void CG_TryPlayCustomSound( vec3_t origin, int entityNum, soundChannel_t channel, const char *soundName, int customSoundSet );
 extern const char	*cg_customScavSoundNames[];

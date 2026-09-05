@@ -12,12 +12,13 @@
 #define MAX_GHOULINST_SIZE	16384
 
 #ifndef FOFS
-#define	FOFS(x) ((int)&(((gentity_t *)0)->x))	// usually already defined in qshared.h
+#include <stddef.h>	// offsetof
+#define	FOFS(x) ((int)offsetof(gentity_t, x))	// usually already defined in qshared.h
 #endif
-#define	STOFS(x) ((int)&(((spawn_temp_t *)0)->x))
-#define	LLOFS(x) ((int)&(((level_locals_t *)0)->x))
-#define	CLOFS(x) ((int)&(((gclient_t *)0)->x))
-#define NPCOFS(x) ((int)&(((gNPC_t *)0)->x)) 
+#define	STOFS(x) ((int)offsetof(spawn_temp_t, x))
+#define	LLOFS(x) ((int)offsetof(level_locals_t, x))
+#define	CLOFS(x) ((int)offsetof(gclient_t, x))
+#define NPCOFS(x) ((int)offsetof(gNPC_t, x))
 //
 #define strFOFS(x)	 #x,FOFS(x)
 #define	strSTOFS(x)  #x,STOFS(x)

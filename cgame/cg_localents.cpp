@@ -3,7 +3,7 @@
 // processed entities, like smoke puffs, gibs, shells, etc.
 
 #include "cg_local.h"
-#include "fx_public.h"
+#include "FX_Public.h"
 
 #define	MAX_LOCAL_ENTITIES	512
 localEntity_t	cg_localEntities[MAX_LOCAL_ENTITIES];

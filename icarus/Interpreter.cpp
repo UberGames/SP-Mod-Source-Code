@@ -6,9 +6,9 @@
 #include <conio.h>	//For getch()
 #include <stdio.h>
 
-#include "Tokenizer.h"
-#include "BlockStream.h"
-#include "Interpreter.h"
+#include "tokenizer.h"
+#include "blockstream.h"
+#include "interpreter.h"
 
 /*
 ===================================================================================================

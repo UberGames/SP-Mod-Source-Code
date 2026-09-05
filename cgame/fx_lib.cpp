@@ -1,7 +1,7 @@
 // FX Library
 
 #include "cg_local.h"
-#include "fx_public.h"
+#include "FX_Public.h"
 
 //Emitters
 //TODO: FXE_Splash		-	directed splash (conical)

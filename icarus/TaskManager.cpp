@@ -2,7 +2,7 @@
 //
 //	-- jweier
 
-#include "ICARUS.h"
+#include "icarus.h"
 #include <assert.h>
 
 #define VALIDATE(a) if ( a == false ) return TASK_FAILED;

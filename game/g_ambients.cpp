@@ -997,7 +997,7 @@ void flier_child (gentity_t *self)
 				G_RadiusDamage( self->currentOrigin, self, FLIER_INSPECT_DAMAGE, 36, self, MOD_STASIS );
 			}
 
-			adjust_flier_child_dest( destPos, (int)self );
+			adjust_flier_child_dest( destPos, (int)(intptr_t)self );
 
 			VectorSubtract( destPos, self->currentOrigin, destDist);
 			destLen = VectorLength( destDist );

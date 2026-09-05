@@ -5,8 +5,8 @@
 #include "g_functions.h"
 #include "anims.h"
 #include "objectives.h"
-#include "..\cgame\cg_text.h"
-#include "..\cgame\cg_local.h"
+#include "../cgame/cg_text.h"
+#include "../cgame/cg_local.h"
 
 extern	cvar_t	*g_debugDamage;
 extern qboolean	stop_icarus;

@@ -1,7 +1,7 @@
 //Stasis weapon effects
 
 #include "cg_local.h"
-#include "fx_public.h"
+#include "FX_Public.h"
 
 void FX_StasisDischarge( vec3_t origin, vec3_t normal, int count, float dist_out, float dist_side );
 

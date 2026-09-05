@@ -1,7 +1,7 @@
 
 #include "g_local.h"
 #include "g_functions.h"
-#include "boltOns.h"
+#include "boltons.h"
 #include "g_infostrings.h"
 
 extern cvar_t *g_spskill;

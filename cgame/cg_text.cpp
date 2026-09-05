@@ -3,7 +3,7 @@
 #include "cg_text.h"
 #include "cg_local.h"
 #include "cg_media.h"
-#include "..\game\speakers.h"
+#include "../game/speakers.h"
 
 
 int precacheWav_i;	// Current high index of precacheWav array

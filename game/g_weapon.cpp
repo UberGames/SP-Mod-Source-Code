@@ -6,7 +6,7 @@
 #include "anims.h"
 #include "b_local.h"
 #include "objectives.h"
-#include "..\cgame\cg_text.h"
+#include "../cgame/cg_text.h"
 
 extern vmCvar_t cg_thirdPerson;
 

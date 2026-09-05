@@ -3,7 +3,7 @@
 
 #include "ui_local.h"
 #include "ui_playerinfo.h"
-#include "..\game\weapons.h"
+#include "../game/weapons.h"
 
 
 #define UI_TIMER_GESTURE		2300

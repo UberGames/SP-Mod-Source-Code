@@ -1,4 +1,4 @@
-#include "G_Local.h"
+#include "g_local.h"
 
 typedef std::map< std::string, int >	timer_m;
 

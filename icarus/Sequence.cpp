@@ -2,7 +2,7 @@
 //
 //	-- jweier
 
-#include "ICARUS.h"
+#include "icarus.h"
 #include <assert.h>
 
 CSequence::CSequence( void )

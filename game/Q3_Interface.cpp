@@ -10,16 +10,16 @@
 #include "Q3_Interface.h"
 #include "Q3_Registers.h"
 #include "anims.h"
-#include "boltOns.h"
+#include "boltons.h"
 #include "b_local.h"
 #include "events.h"
 #include "g_nav.h"
-#include "..\cgame\cg_camera.h"
-#include "..\cgame\cg_text.h"
-#include "..\game\objectives.h"
+#include "../cgame/cg_camera.h"
+#include "../cgame/cg_text.h"
+#include "../game/objectives.h"
 #include "g_roff.h"
-#include "..\cgame\cg_local.h"
-#include "..\game\speakers.h"
+#include "../cgame/cg_local.h"
+#include "../game/speakers.h"
 
 extern int ICARUS_LinkEntity( int entID, CSequencer *sequencer, CTaskManager *taskManager );
 

@@ -6,7 +6,7 @@
 
 
 #include "gameinfo.h"
-#include "..\game\weapons.h"
+#include "../game/weapons.h"
 
 
 gameinfo_import_t	gi;

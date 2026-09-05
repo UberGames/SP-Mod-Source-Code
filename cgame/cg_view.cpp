@@ -1,7 +1,7 @@
 // cg_view.c -- setup all the parameters (position, angle, etc)
 // for a 3D rendering
 #include "cg_local.h"
-#include "fx_public.h"
+#include "FX_Public.h"
 
 float cg_zoomFov;
 

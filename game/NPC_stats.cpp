@@ -1,7 +1,7 @@
 //NPC_stats.cpp
 #include "b_local.h"
 #include "b_public.h"
-#include "boltOns.h"
+#include "boltons.h"
 #include "anims.h"
 
 extern qboolean NPCsPrecached;

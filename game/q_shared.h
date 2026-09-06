@@ -129,15 +129,20 @@ void Q_srand( unsigned int seed );
 #define CPUSTRING	"MacOSXS-ppc"
 #elif defined __i386__
 #define CPUSTRING	"MacOSXS-i386"
+#elif defined __x86_64__
+#define CPUSTRING	"MacOSX-x86_64"
+#elif defined __arm64__
+#define CPUSTRING	"MacOSX-arm64"
 #else
 #define CPUSTRING	"MacOSXS-other"
 #endif
 
 #define	PATH_SEP	'/'
 
-#define	GAME_HARD_LINKED
-#define	CGAME_HARD_LINKED
-#define	UI_HARD_LINKED
+// The Mac OS X Server build of Quake 3 linked the modules into the executable
+// (the *_HARD_LINKED defines lived here).  This port loads them as dylibs the
+// way the Windows build loads DLLs, so each module carries its own Com_Printf,
+// Com_Error and Field_* like the Windows build does.
 
 #endif
 

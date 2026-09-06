@@ -668,6 +668,7 @@ static void	Slider_Draw( menuslider_s *s );
 static void	SpinControl_Init( menulist_s *s );
 static void	SpinControl_Draw( menulist_s *s );
 static sfxHandle_t SpinControl_Key( menulist_s *l, int key );
+static sfxHandle_t SpinControl_InitListRender( menulist_s *s );
 
 // bitmap widget
 static void Bitmap_Init( menubitmap_s *b );
@@ -2036,6 +2037,108 @@ void SpinControl_Init( menulist_s *s )
 
 /*
 ===============
+SpinControl_InitListRender
+
+Opens the control's options as a list drawn over the menu, or - if one is
+already open - selects whatever the cursor is over.  Adapted from RPG-X2.
+===============
+*/
+static sfxHandle_t SpinControl_InitListRender( menulist_s *s )
+{
+	int		bestWidth = 0;
+	int		widthOffset, heightOffset;
+	int		i;
+
+	if ( !s->generic.parent->displaySpinList )
+	{
+		if ( !(s->generic.flags & QMF_HASMOUSEFOCUS) )
+			return 0;
+
+		memset( &s->drawList, 0, sizeof( drawList_t ) );
+
+		for ( i = 0; i < s->numitems; i++ )
+		{
+			const char *text = s->listnames ? menu_normal_text[s->listnames[i]] : s->itemnames[i];
+			int width = UI_ProportionalStringWidth( text, UI_SMALLFONT );
+			if ( width > bestWidth )
+				bestWidth = width;
+		}
+
+		if ( !s->listX && !s->listY )
+		{
+			widthOffset = s->width ? s->width : MENU_BUTTON_MED_WIDTH;
+			widthOffset = MENU_BUTTON_MED_HEIGHT + widthOffset - 8 + MENU_BUTTON_MED_HEIGHT + 2;
+			heightOffset = s->textY;
+		}
+		else
+		{
+			widthOffset = s->listX;
+			heightOffset = s->listY;
+		}
+
+		s->drawList.left  = s->generic.x + widthOffset - 2;
+		s->drawList.up    = s->generic.y + heightOffset - 2;
+		s->drawList.right = s->drawList.left + bestWidth + 4;
+		s->drawList.down  = s->drawList.up + ( SMALLCHAR_HEIGHT * s->numitems ) + 3;
+
+		// sit the list a third of its height higher than the control
+		heightOffset = (int)( (float)( s->drawList.down - s->drawList.up ) * 0.33f );
+		s->drawList.up -= heightOffset;
+		s->drawList.down -= heightOffset;
+
+		// and keep it on the screen
+		if ( s->drawList.right > SCREEN_WIDTH )
+		{
+			s->drawList.xOffset = s->drawList.right - SCREEN_WIDTH + 6;
+			s->drawList.left -= s->drawList.xOffset;
+			s->drawList.right -= s->drawList.xOffset;
+		}
+		if ( s->drawList.down > SCREEN_HEIGHT )
+		{
+			s->drawList.yOffset = s->drawList.down - SCREEN_HEIGHT + 6;
+			s->drawList.up -= s->drawList.yOffset;
+			s->drawList.down -= s->drawList.yOffset;
+		}
+		if ( s->drawList.up < 0 )
+		{
+			s->drawList.yOffset = -s->drawList.up;
+			s->drawList.up += s->drawList.yOffset;
+			s->drawList.down += s->drawList.yOffset;
+		}
+		if ( s->drawList.left < 0 )
+		{
+			s->drawList.xOffset = -s->drawList.left;
+			s->drawList.left += s->drawList.xOffset;
+			s->drawList.right += s->drawList.xOffset;
+		}
+
+		s->generic.parent->displaySpinList = s;
+		s->generic.parent->noNewSelecting = qtrue;
+		return menu_move_sound;
+	}
+
+	// a list is open: a click inside it selects, anywhere else closes
+	if ( UI_CursorInRect( s->drawList.left, s->drawList.up,
+						  s->drawList.right - s->drawList.left,
+						  s->drawList.down - s->drawList.up ) )
+	{
+		int selectedNum = ( uis.cursory - s->drawList.up + 1 ) / SMALLCHAR_HEIGHT;
+
+		if ( selectedNum < 0 )
+			selectedNum = 0;
+		if ( selectedNum >= s->numitems )
+			selectedNum = s->numitems - 1;
+
+		s->curvalue = selectedNum;
+	}
+
+	s->generic.parent->displaySpinList = NULL;
+	s->generic.parent->noNewSelecting = qfalse;
+	return menu_move_sound;
+}
+
+/*
+===============
 SpinControl_Key
 ===============
 */
@@ -2054,12 +2157,19 @@ static sfxHandle_t SpinControl_Key( menulist_s *s, int key )
 
 		case K_ENTER:
 		case K_KP_ENTER:
-			s->curvalue++;
-			if (s->curvalue >= s->numitems)
-				s->curvalue = 0;
-			sound = menu_move_sound;
+			if ( ui.Cvar_VariableValue( "ui_spinLists" ) && !s->ignoreList && s->numitems > 1 && (s->generic.flags & QMF_HASMOUSEFOCUS) )
+			{
+				sound = SpinControl_InitListRender( s );
+			}
+			else
+			{
+				s->curvalue++;
+				if (s->curvalue >= s->numitems)
+					s->curvalue = 0;
+				sound = menu_move_sound;
+			}
 			break;
-		
+
 		case K_KP_LEFTARROW:
 		case K_LEFTARROW:
 			if (s->curvalue > 0)
@@ -2083,7 +2193,9 @@ static sfxHandle_t SpinControl_Key( menulist_s *s, int key )
 			break;
 	}
 
-	if ( sound && s->generic.callback )
+	// the callback fires only once a value has actually been chosen, not
+	// while the list is still open awaiting a click
+	if ( sound && s->generic.callback && s->generic.parent->displaySpinList != s )
 		s->generic.callback( s, QM_ACTIVATED );
 
 	return (sound);
@@ -2831,6 +2943,46 @@ void Menu_Draw( menuframework_s *menu )
 	{
 		Menu_DrawStatusBar( menu->statusbar );
 	}
+
+	// TiM - the open spin list draws over everything else, so it goes here
+	if ( menu->displaySpinList )
+	{
+		menulist_s	*s = (menulist_s *)menu->displaySpinList;
+		int			boxWidth = s->drawList.right - s->drawList.left;
+		int			boxHeight = s->drawList.down - s->drawList.up;
+		int			selectedNum, i;
+
+		ui.R_SetColor( colorTable[CT_BLACK] );
+		UI_DrawHandlePic( s->drawList.left, s->drawList.up, boxWidth, boxHeight, uis.whiteShader );
+
+		ui.R_SetColor( colorTable[s->color2] );
+		UI_DrawHandlePic( s->drawList.left, s->drawList.up + 1, 1, boxHeight - 2, uis.whiteShader );
+		UI_DrawHandlePic( s->drawList.left, s->drawList.up, boxWidth, 1, uis.whiteShader );
+		UI_DrawHandlePic( s->drawList.right - 1, s->drawList.up + 1, 1, boxHeight - 2, uis.whiteShader );
+		UI_DrawHandlePic( s->drawList.left, s->drawList.down - 1, boxWidth, 1, uis.whiteShader );
+
+		selectedNum = ( uis.cursory - s->drawList.up + 1 ) / SMALLCHAR_HEIGHT;
+		if ( selectedNum < 0 )
+			selectedNum = 0;
+		if ( selectedNum >= s->numitems )
+			selectedNum = s->numitems - 1;
+
+		if ( UI_CursorInRect( s->drawList.left, s->drawList.up, boxWidth, boxHeight ) )
+		{
+			ui.R_SetColor( colorTable[s->color] );
+			UI_DrawHandlePic( s->drawList.left + 1, ( s->drawList.up + 1 ) + SMALLCHAR_HEIGHT * selectedNum,
+							  boxWidth - 2, SMALLCHAR_HEIGHT + 1, uis.whiteShader );
+		}
+
+		for ( i = 0; i < s->numitems; i++ )
+		{
+			const char *text = s->listnames ? menu_normal_text[s->listnames[i]] : s->itemnames[i];
+			UI_DrawProportionalString( s->drawList.left + 2, ( s->drawList.up + 2 ) + SMALLCHAR_HEIGHT * i,
+									   text, UI_SMALLFONT,
+									   colorTable[ i == selectedNum ? CT_BLACK : CT_WHITE ] );
+		}
+		ui.R_SetColor( NULL );
+	}
 }
 
 /*
@@ -2886,8 +3038,17 @@ sfxHandle_t Menu_DefaultKey( menuframework_s *m, int key )
 	// menu system keys
 	switch ( key )
 	{
-		case K_MOUSE2:
 		case K_ESCAPE:
+			// TiM - close the open list rather than leaving the menu
+			if ( m && m->displaySpinList )
+			{
+				m->displaySpinList = NULL;
+				m->noNewSelecting = qfalse;
+				return menu_move_sound;
+			}
+			// fall through - shared with K_MOUSE2
+
+		case K_MOUSE2:
 			if (uis.menusp>0)
 			{
 				UI_PopMenu();

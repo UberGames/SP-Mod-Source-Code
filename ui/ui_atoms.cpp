@@ -1075,6 +1075,11 @@ static void UI_MouseEvent( int dx, int dy )
 	else if (uis.cursory > SCREEN_HEIGHT)
 		uis.cursory = SCREEN_HEIGHT;
 
+	// TiM - a spin list is open: leave focus exactly where it is, and only
+	// track the cursor for the list's own hit-testing
+	if (uis.activemenu->noNewSelecting)
+		return;
+
 	// region test the active menu items
 	for (i=0; i<uis.activemenu->nitems; i++)
 	{
@@ -1398,6 +1403,7 @@ static void UI_Init( int apiVersion, uiimport_t *uiimport ) {
 	ui.Cvar_Create ("g_language", "", CVAR_ARCHIVE | CVAR_NORESTART);
 	ui.Cvar_Create ("s_language", "", CVAR_ARCHIVE | CVAR_NORESTART);
 	ui.Cvar_Create ("k_language", "", CVAR_ARCHIVE | CVAR_NORESTART);
+	ui.Cvar_Create( "ui_spinLists", "1", CVAR_ARCHIVE );
 
 
 }

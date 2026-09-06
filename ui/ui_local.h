@@ -1643,6 +1643,9 @@ typedef struct _tag_menuframework
 	int			titleY;				// Title y pos
 	int			titleI;				// The title
 	int			footNoteEnum;		// Footnote text
+
+	void		*displaySpinList;	// the open menulist_s, or NULL
+	qboolean	noNewSelecting;		// no other item takes focus while a list is open
 } menuframework_s;
 
 typedef struct
@@ -1722,6 +1725,13 @@ typedef struct
 	float range;
 } menuslider_s;
 
+// TiM - a spin control's options drawn as a list over the menu
+typedef struct
+{
+	int		left, up, right, down;
+	int		xOffset, yOffset;	// applied when the box would leave the screen
+} drawList_t;
+
 typedef struct
 {
 	menucommon_s generic;
@@ -1745,6 +1755,11 @@ typedef struct
 	int				textcolor;	// Normal color
 	int				textcolor2;	// Highlight color
 	byte			updated;	// 1 if changed
+
+	drawList_t		drawList;
+	qboolean		ignoreList;		// this control always cycles
+	int				listX;			// optional explicit list position
+	int				listY;
 } menulist_s;
 
 typedef struct

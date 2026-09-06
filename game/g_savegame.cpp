@@ -440,6 +440,17 @@ this is compiled in and the structures are written directly.
 #define SG_LAYOUT_MAX_BYTES	16384
 static byte sgLayoutBuffer[SG_LAYOUT_MAX_BYTES];
 
+// sg_layout.h was generated from MSVC's x64 class layouts.  A compiler that
+// lays these structures out differently would make the table translate the
+// wrong bytes, so refuse to build rather than write a corrupt save.  (The
+// 32-bit MSVC build is the layout the table maps *to*, so it is exempt.)
+#if defined(__LP64__) || defined(_WIN64)
+static_assert( sizeof( gentity_t ) == sgSize64_GENT, "gentity_t layout differs from sg_layout.h; regenerate the table" );
+static_assert( sizeof( gclient_t ) == sgSize64_GCLI, "gclient_t layout differs from sg_layout.h; regenerate the table" );
+static_assert( sizeof( gNPC_t )    == sgSize64_GNPC, "gNPC_t layout differs from sg_layout.h; regenerate the table" );
+static_assert( LLOFS( LEVEL_LOCALS_T_SAVESTOP ) == sgSaveStop64_LVLC, "level_locals_t layout differs from sg_layout.h; regenerate the table" );
+#endif
+
 // Finds the translation for a chunk.  iLen64 is the in-memory size the
 // caller is dealing with; it must match what the table was built for, so a
 // structure changing size cannot silently produce a corrupt file.

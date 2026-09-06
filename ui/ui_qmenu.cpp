@@ -2294,7 +2294,18 @@ void SpinControl_Draw( menulist_s *s )
 	UI_DrawHandlePic(x+ s->width+ MENU_BUTTON_MED_HEIGHT - 16, y, -MENU_BUTTON_MED_HEIGHT, MENU_BUTTON_MED_HEIGHT, uis.graphicButtonLeftEnd);	// Right
 	UI_DrawHandlePic(x + MENU_BUTTON_MED_HEIGHT - 8,y, s->width, MENU_BUTTON_MED_HEIGHT, uis.whiteShader);										// Middle
 
-	UI_DrawProportionalString( x + s->textX, y + s->textY,menu_button_text[s->textEnum][0], UI_SMALLFONT, colorTable[buttonTextColor] );
+	// TiM - MBT_NONE is the "no label" enum, and its text is never filled
+	// in: UI_ParseButtonText starts at 1 because "Zero is null string", so
+	// menu_button_text[MBT_NONE] stays NULL.  The bitmaps that use it never
+	// reach a string draw, but a spin control does - the video menu's
+	// aspect-ratio control uses MBT_NONE and hand-draws its own label - and
+	// UI_DrawProportionalString2 asserts on, then dereferences, a NULL
+	// string.  Guard it the way the description draw above already guards
+	// menu_button_text[...][1].
+	if ( menu_button_text[s->textEnum][0] )
+	{
+		UI_DrawProportionalString( x + s->textX, y + s->textY,menu_button_text[s->textEnum][0], UI_SMALLFONT, colorTable[buttonTextColor] );
+	}
 }
 
 /*

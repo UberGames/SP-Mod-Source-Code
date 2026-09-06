@@ -4,7 +4,7 @@
 #define __INSTANCE__
 
 #include "blockstream.h"
-#include "Interface.h"
+#include "interface.h"
 #include "taskmanager.h"
 #include "sequence.h"
 #include "sequencer.h"

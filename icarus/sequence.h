@@ -4,7 +4,7 @@
 #define __SEQUENCE__
 
 #include "blockstream.h"
-#include "Interface.h"
+#include "interface.h"
 #include "taskmanager.h"
 
 class ICARUS_Instance;

@@ -48,8 +48,33 @@
 #include <strings.h>
 #define stricmp		strcasecmp
 #define strnicmp	strncasecmp
+#define strcmpi		strcasecmp
 #define strlwr		Q_strlwr
 #define strupr		Q_strupr
+#define _strlwr		Q_strlwr
+
+// The Windows SDK type the navigator was written against (the tokenizer
+// carries its own, see icarus/tokenizer.h).
+typedef unsigned char	BYTE;
+
+// The multimedia timer is only used to perturb the RNG at map start, so any
+// value that varies will do.
+#define timeGetTime()			((unsigned int)time(NULL))
+
+// The game's random helpers below (Q_irand, Q_flrand, random, crandom) were
+// written against MSVC's rand(), which returns 15 bits.  rand() on this
+// platform returns 31, which would overflow Q_irand and put random() in
+// 0..65536.  Use MSVC's own generator instead, so the numbers are the ones
+// the retail game produces.
+int  Q_rand( void );
+void Q_srand( unsigned int seed );
+#define rand()		Q_rand()
+#define srand(s)	Q_srand(s)
+
+// <stdlib.h> declares long random(void); the game's own float version is
+// renamed under the macro so the two do not collide.  Function-like, so
+// struct members named "random" (gentity_t::random) are left alone.
+#define random()	Q_frandom()
 
 #endif
 

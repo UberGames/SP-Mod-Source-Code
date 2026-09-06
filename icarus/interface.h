@@ -3,7 +3,14 @@
 #ifndef __INTERFACE__
 #define __INTERFACE__
 
+// windows.h spells this unsigned long, which is four bytes there; keep it
+// four bytes on LP64 platforms too, the ICARUS time stamps travel through
+// the savegame.
+#ifdef _WIN32
 typedef unsigned long       DWORD;
+#else
+typedef unsigned int        DWORD;
+#endif
 
 typedef	float	vec_t;
 typedef	vec_t	vec3_t[3];

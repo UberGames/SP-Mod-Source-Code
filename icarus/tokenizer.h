@@ -12,9 +12,17 @@
 
 // icarus.h pulls this header into the four ICARUS runtime files that do get
 // compiled, so <windows.h> would follow the tokenizer onto every platform.
-// Nothing here needs it - the types it seemed to want are defined just below.
+// Off Windows the handful of Windows SDK names it uses are supplied here,
+// with the widths they have on Windows.
 #ifdef _WIN32
 #include <windows.h>
+#else
+#define OutputDebugString(s)	((void)0)
+typedef unsigned int	UINT;
+typedef unsigned int	DWORD;
+typedef unsigned int	COLORREF;
+typedef void			*HANDLE;
+typedef const char		*LPCTSTR;
 #endif
 
 typedef unsigned char byte;

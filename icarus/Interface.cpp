@@ -5,7 +5,7 @@
 //
 //	-- jweier
 
-#include "Interface.h"
+#include "interface.h"
 
 void Interface_Init( interface_export_t *pe )
 {

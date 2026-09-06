@@ -1002,3 +1002,24 @@ const char *GetStringForID( stringID_table_t *table, int id )
 
 	return NULL;
 }
+
+#ifndef _WIN32
+/*
+============
+Q_rand / Q_srand
+
+MSVC's CRT rand(): a 32-bit LCG returning the top 15 bits.  Seeded to 1 at
+start-up like the CRT.  The game module's random helpers assume this range.
+============
+*/
+static unsigned int q_holdrand = 1;
+
+int Q_rand( void ) {
+	q_holdrand = q_holdrand * 214013u + 2531011u;
+	return (int)( ( q_holdrand >> 16 ) & 0x7fff );
+}
+
+void Q_srand( unsigned int seed ) {
+	q_holdrand = seed;
+}
+#endif

@@ -134,6 +134,7 @@ static menuframework_s		s_video_menu;
 static menulist_s			s_video_mode_option_list;
 static menulist_s			s_video_driver_list;
 static menulist_s			s_video_extension_enable_list;
+static menulist_s			s_video_aspect_list;
 static menulist_s			s_video_mode_list;
 static menulist_s			s_video_colordepth_list;
 static menulist_s			s_video_fullscreen_list;
@@ -551,8 +552,37 @@ static void UpdateMenuItemValues( void )
 static char			s_videoModeLabels[VIDEO_MODE_MAX][16];
 static const char	*s_videoModeNames[VIDEO_MODE_MAX + 2];
 static int			s_videoModeCount;		// entries before DESKTOP, 0 when the engine has no r_modeList
+static int			s_videoModeNumbers[VIDEO_MODE_MAX + 1];	// r_mode value for each visible entry, +1 for DESKTOP
 
-static int VideoModes_Build( void )
+// aspect categories, in the order they appear in the control
+#define VIDEO_ASPECT_ALL	0
+#define VIDEO_ASPECT_4_3	1
+#define VIDEO_ASPECT_5_4	2
+#define VIDEO_ASPECT_16_10	3
+#define VIDEO_ASPECT_16_9	4
+#define VIDEO_ASPECT_COUNT	5
+
+static const char *s_videoAspectNames[VIDEO_ASPECT_COUNT + 1] =
+{
+	"ALL", "4:3", "5:4", "16:10", "16:9", NULL
+};
+
+/*
+Which category a mode belongs to.  Within 0.02 of a ratio counts, which puts
+856x480 (1.783) in 16:9; anything matching nothing appears only under ALL.
+*/
+static int VideoModes_Category( int w, int h )
+{
+	float ratio = h ? (float)w / (float)h : 0.0f;
+
+	if ( fabs( ratio - (4.0f/3.0f) ) < 0.02f )	return VIDEO_ASPECT_4_3;
+	if ( fabs( ratio - (5.0f/4.0f) ) < 0.02f )	return VIDEO_ASPECT_5_4;
+	if ( fabs( ratio - (16.0f/10.0f) ) < 0.02f )	return VIDEO_ASPECT_16_10;
+	if ( fabs( ratio - (16.0f/9.0f) ) < 0.02f )	return VIDEO_ASPECT_16_9;
+	return VIDEO_ASPECT_ALL;
+}
+
+static int VideoModes_Build( int category, int currentMode )
 {
 	char	list[1024];
 	char	*p;
@@ -562,18 +592,27 @@ static int VideoModes_Build( void )
 	for ( p = list; *p && n < VIDEO_MODE_MAX; mode++ )
 	{
 		char *tok = p;
+		int w = 0, h = 0;
+
 		while ( *p && *p != ' ' ) p++;
 		if ( *p ) *p++ = '\0';
 		if ( mode < VIDEO_MODE_FIRST )
 			continue;
+
+		sscanf( tok, "%dx%d", &w, &h );
+		if ( category != VIDEO_ASPECT_ALL && VideoModes_Category( w, h ) != category && mode != currentMode )
+			continue;
+
 		Q_strncpyz( s_videoModeLabels[n], tok, sizeof( s_videoModeLabels[n] ) );
 		Q_strupr( s_videoModeLabels[n] );		// the menu font is upper case
 		s_videoModeNames[n] = s_videoModeLabels[n];
+		s_videoModeNumbers[n] = mode;
 		n++;
 	}
 	if ( n )
 	{
 		s_videoModeNames[n] = "DESKTOP";
+		s_videoModeNumbers[n] = -2;
 		s_videoModeNames[n + 1] = NULL;
 	}
 	s_videoModeCount = n;
@@ -587,15 +626,34 @@ GetVideoMenuItemValues
 */
 static void GetVideoMenuItemValues( void )
 {
-	if ( s_videoModeCount || VideoModes_Build() )
+	if ( s_videoModeCount || VideoModes_Build( VIDEO_ASPECT_ALL, -1 ) )
 	{
 		int mode = ui.Cvar_VariableValue( "r_mode" );
-		if ( mode == -2 )
-			s_video_mode_list.curvalue = s_videoModeCount;		// DESKTOP
-		else if ( mode >= VIDEO_MODE_FIRST && mode < VIDEO_MODE_FIRST + s_videoModeCount )
-			s_video_mode_list.curvalue = mode - VIDEO_MODE_FIRST;
-		else
-			s_video_mode_list.curvalue = 1;
+		int w = 0, h = 0, i;
+		char list[1024], *p;
+
+		// the current mode's own dimensions, for its category
+		ui.Cvar_VariableStringBuffer( "r_modeList", list, sizeof( list ) );
+		for ( p = list, i = 0; *p; i++ )
+		{
+			char *tok = p;
+			while ( *p && *p != ' ' ) p++;
+			if ( *p ) *p++ = '\0';
+			if ( i == mode ) { sscanf( tok, "%dx%d", &w, &h ); break; }
+		}
+
+		s_video_aspect_list.curvalue = ( mode == -2 ) ? VIDEO_ASPECT_ALL : VideoModes_Category( w, h );
+		VideoModes_Build( s_video_aspect_list.curvalue, mode );
+
+		s_video_mode_list.curvalue = 0;
+		for ( i = 0; i <= s_videoModeCount; i++ )
+		{
+			if ( s_videoModeNumbers[i] == mode )
+			{
+				s_video_mode_list.curvalue = i;
+				break;
+			}
+		}
 	}
 	else
 	{
@@ -717,6 +775,34 @@ static void ModeCallback( void *s, int notification )
 		else if ( s_video_mode_list.curvalue > 6 )
 		{
 			s_video_mode_list.curvalue = 6;
+		}
+	}
+}
+
+/*
+===============
+AspectCallback
+===============
+*/
+static void AspectCallback( void *s, int notification )
+{
+	if ( notification != QM_ACTIVATED )
+		return;
+
+	// rebuild the resolution list for the newly chosen category
+	{
+		int mode = ui.Cvar_VariableValue( "r_mode" );
+		int i;
+
+		VideoModes_Build( s_video_aspect_list.curvalue, mode );
+		s_video_mode_list.curvalue = 0;
+		for ( i = 0; i <= s_videoModeCount; i++ )
+		{
+			if ( s_videoModeNumbers[i] == mode )
+			{
+				s_video_mode_list.curvalue = i;
+				break;
+			}
 		}
 	}
 }
@@ -845,7 +931,7 @@ static void ApplyChanges( void *unused, int notification )
 
 	// Video Resolution Setting
 	if ( s_videoModeCount )
-		ui.Cvar_SetValue( "r_mode", s_video_mode_list.curvalue == s_videoModeCount ? -2 : s_video_mode_list.curvalue + VIDEO_MODE_FIRST );
+		ui.Cvar_SetValue( "r_mode", s_videoModeNumbers[s_video_mode_list.curvalue] );
 	else
 		// Adding 2 because we don't show 320x200 and MNT_400X300
 		ui.Cvar_SetValue( "r_mode", (s_video_mode_list.curvalue +2) );
@@ -1276,6 +1362,28 @@ static void VideoData_MenuInit( void )
 	s_video_extension_enable_list.listnames			= s_enable_Names;
 	s_video_extension_enable_list.width				= width;
 
+	// filters the resolution list below by aspect ratio; only exists when the
+	// engine publishes r_modeList - the retail fixed list has nothing to filter
+	if ( VideoModes_Build( VIDEO_ASPECT_ALL, -1 ) )
+	{
+		y += inc;
+		s_video_aspect_list.generic.type			= MTYPE_SPINCONTROL;
+		s_video_aspect_list.generic.flags			= QMF_HIGHLIGHT_IF_FOCUS;
+		s_video_aspect_list.generic.x				= x;
+		s_video_aspect_list.generic.y				= y;
+		s_video_aspect_list.generic.callback		= AspectCallback;
+		s_video_aspect_list.textEnum				= MBT_VIDEOMODE;
+		s_video_aspect_list.textcolor				= CT_BLACK;
+		s_video_aspect_list.textcolor2				= CT_WHITE;
+		s_video_aspect_list.color					= CT_DKPURPLE1;
+		s_video_aspect_list.color2					= CT_LTPURPLE1;
+		s_video_aspect_list.textX					= 5;
+		s_video_aspect_list.textY					= 2;
+		s_video_aspect_list.itemnames				= s_videoAspectNames;
+		s_video_aspect_list.listnames				= NULL;
+		s_video_aspect_list.width					= width;
+	}
+
 	y += inc;
 	// references/modifies "r_mode"
 	s_video_mode_list.generic.type					= MTYPE_SPINCONTROL;
@@ -1290,7 +1398,7 @@ static void VideoData_MenuInit( void )
 	s_video_mode_list.color2						= CT_LTPURPLE1;
 	s_video_mode_list.textX							= 5;
 	s_video_mode_list.textY							= 2;
-	if ( VideoModes_Build() )
+	if ( VideoModes_Build( VIDEO_ASPECT_ALL, -1 ) )
 	{
 		s_video_mode_list.itemnames					= s_videoModeNames;
 		s_video_mode_list.listnames					= NULL;
@@ -1470,6 +1578,8 @@ static void VideoData_MenuInit( void )
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_mode_option_list);
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_driver_list);
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_extension_enable_list);
+	if ( s_videoModeCount )
+		Menu_AddItem( &s_video_menu, ( void * )&s_video_aspect_list);
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_mode_list);
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_colordepth_list);
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_fullscreen_list);

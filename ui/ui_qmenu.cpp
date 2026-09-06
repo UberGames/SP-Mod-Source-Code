@@ -669,6 +669,7 @@ static void	SpinControl_Init( menulist_s *s );
 static void	SpinControl_Draw( menulist_s *s );
 static sfxHandle_t SpinControl_Key( menulist_s *l, int key );
 static sfxHandle_t SpinControl_InitListRender( menulist_s *s );
+static int	SpinControl_ListIndexAtCursor( menulist_s *s );
 
 // bitmap widget
 static void Bitmap_Init( menubitmap_s *b );
@@ -2037,6 +2038,28 @@ void SpinControl_Init( menulist_s *s )
 
 /*
 ===============
+SpinControl_ListIndexAtCursor
+
+Returns the row of an open spin list that the cursor currently sits over,
+clamped to a valid item index. Shared by SpinControl_InitListRender (to
+decide what a click selects) and Menu_Draw (to decide what to highlight),
+so the two stay in sync.
+===============
+*/
+static int SpinControl_ListIndexAtCursor( menulist_s *s )
+{
+	int index = ( uis.cursory - s->drawList.up + 1 ) / SMALLCHAR_HEIGHT;
+
+	if ( index < 0 )
+		index = 0;
+	if ( index >= s->numitems )
+		index = s->numitems - 1;
+
+	return index;
+}
+
+/*
+===============
 SpinControl_InitListRender
 
 Opens the control's options as a list drawn over the menu, or - if one is
@@ -2122,14 +2145,7 @@ static sfxHandle_t SpinControl_InitListRender( menulist_s *s )
 						  s->drawList.right - s->drawList.left,
 						  s->drawList.down - s->drawList.up ) )
 	{
-		int selectedNum = ( uis.cursory - s->drawList.up + 1 ) / SMALLCHAR_HEIGHT;
-
-		if ( selectedNum < 0 )
-			selectedNum = 0;
-		if ( selectedNum >= s->numitems )
-			selectedNum = s->numitems - 1;
-
-		s->curvalue = selectedNum;
+		s->curvalue = SpinControl_ListIndexAtCursor( s );
 	}
 
 	s->generic.parent->displaySpinList = NULL;
@@ -2145,8 +2161,10 @@ SpinControl_Key
 static sfxHandle_t SpinControl_Key( menulist_s *s, int key )
 {
 	sfxHandle_t sound;
+	qboolean	suppressCallback;
 
 	sound = NULL;
+	suppressCallback = qfalse;
 	switch (key)
 	{
 		case K_MOUSE1:
@@ -2160,6 +2178,10 @@ static sfxHandle_t SpinControl_Key( menulist_s *s, int key )
 			if ( ui.Cvar_VariableValue( "ui_spinLists" ) && !s->ignoreList && s->numitems > 1 && (s->generic.flags & QMF_HASMOUSEFOCUS) )
 			{
 				sound = SpinControl_InitListRender( s );
+				// this call may only have opened the list, in which case
+				// nothing has been chosen yet - suppress the callback until
+				// a later call closes it (by selecting, or clicking away)
+				suppressCallback = (qboolean)( s->generic.parent->displaySpinList == s );
 			}
 			else
 			{
@@ -2172,6 +2194,10 @@ static sfxHandle_t SpinControl_Key( menulist_s *s, int key )
 
 		case K_KP_LEFTARROW:
 		case K_LEFTARROW:
+			// unchanged from before the list feature: the arrow keys always
+			// cycle in place and fire immediately, even while a list this
+			// same control opened is still on screen (m->cursor stays on
+			// this control the whole time, so these keys still reach here)
 			if (s->curvalue > 0)
 			{
 				s->curvalue--;
@@ -2193,9 +2219,10 @@ static sfxHandle_t SpinControl_Key( menulist_s *s, int key )
 			break;
 	}
 
-	// the callback fires only once a value has actually been chosen, not
-	// while the list is still open awaiting a click
-	if ( sound && s->generic.callback && s->generic.parent->displaySpinList != s )
+	// the callback fires immediately for every value change, exactly as it
+	// did before the list feature, except when this call has just opened
+	// the list and no value has actually been chosen yet
+	if ( sound && s->generic.callback && !suppressCallback )
 		s->generic.callback( s, QM_ACTIVATED );
 
 	return (sound);
@@ -2961,11 +2988,7 @@ void Menu_Draw( menuframework_s *menu )
 		UI_DrawHandlePic( s->drawList.right - 1, s->drawList.up + 1, 1, boxHeight - 2, uis.whiteShader );
 		UI_DrawHandlePic( s->drawList.left, s->drawList.down - 1, boxWidth, 1, uis.whiteShader );
 
-		selectedNum = ( uis.cursory - s->drawList.up + 1 ) / SMALLCHAR_HEIGHT;
-		if ( selectedNum < 0 )
-			selectedNum = 0;
-		if ( selectedNum >= s->numitems )
-			selectedNum = s->numitems - 1;
+		selectedNum = SpinControl_ListIndexAtCursor( s );
 
 		if ( UI_CursorInRect( s->drawList.left, s->drawList.up, boxWidth, boxHeight ) )
 		{
@@ -3039,16 +3062,18 @@ sfxHandle_t Menu_DefaultKey( menuframework_s *m, int key )
 	switch ( key )
 	{
 		case K_ESCAPE:
-			// TiM - close the open list rather than leaving the menu
+		case K_MOUSE2:
+			// TiM - close the open list rather than leaving/popping the menu,
+			// for either key - a direct K_MOUSE2 must see this too, or it
+			// pops the menu with displaySpinList/noNewSelecting still set on
+			// the (now persistent, static) menuframework_s
 			if ( m && m->displaySpinList )
 			{
 				m->displaySpinList = NULL;
 				m->noNewSelecting = qfalse;
 				return menu_move_sound;
 			}
-			// fall through - shared with K_MOUSE2
 
-		case K_MOUSE2:
 			if (uis.menusp>0)
 			{
 				UI_PopMenu();

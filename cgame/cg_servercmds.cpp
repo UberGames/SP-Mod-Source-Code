@@ -109,7 +109,11 @@ static void CG_ServerCommand( void ) {
 	// Cinematic text
 	if ( !strcmp( cmd, "ct" ) ) 
 	{
-		CG_CaptionText( CG_Argv(1), cgs.sound_precache[atoi(CG_Argv(2))], SCREEN_HEIGHT * 0.25, SMALLCHAR_WIDTH );
+		// CG_Argv returns one static buffer, so two calls in one argument list
+		// depend on evaluation order: MSVC goes right to left and the key survives,
+		// clang goes left to right and the sound index overwrites it
+		int sound = cgs.sound_precache[atoi(CG_Argv(2))];
+		CG_CaptionText( CG_Argv(1), sound, SCREEN_HEIGHT * 0.25, SMALLCHAR_WIDTH );
 		return;
 	}
 

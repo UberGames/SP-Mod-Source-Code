@@ -23,7 +23,7 @@ extern void CG_PreInit();
 intptr_t (*syscall)( intptr_t arg, ... ) = (intptr_t (*)( intptr_t, ...))-1;
 
 
-void dllEntry( intptr_t (*syscallptr)( intptr_t arg,... ) ) {
+extern "C" void dllEntry( intptr_t (*syscallptr)( intptr_t arg,... ) ) {
 	syscall = syscallptr;
 	CG_PreInit();
 }

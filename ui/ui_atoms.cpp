@@ -1402,7 +1402,7 @@ static void UI_Init( int apiVersion, uiimport_t *uiimport ) {
 
 }
 
-uiexport_t *GetUIAPI( void ) {
+extern "C" uiexport_t *GetUIAPI( void ) {
 	static uiexport_t	uiexport;
 
 	memset( &uiexport, 0, sizeof( uiexport ) );

@@ -128,6 +128,6 @@ typedef struct {
 
 } uiexport_t;
 
-uiexport_t *GetUIAPI( void );
+extern "C" uiexport_t *GetUIAPI( void );
 
 #endif

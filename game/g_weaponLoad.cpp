@@ -5,7 +5,10 @@
 
 #include "../ui/gameinfo.h"
 #include "weapons.h"
-extern	gameinfo_import_t	gi;
+// gameinfo.cpp calls its import table gameinfoImport (see the note there);
+// this file keeps using gi. for the same members in both modules.
+extern	gameinfo_import_t	gameinfoImport;
+#define gi gameinfoImport
 extern weaponData_t weaponData[];
 extern ammoData_t ammoData[];
 

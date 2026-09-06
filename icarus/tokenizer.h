@@ -10,7 +10,12 @@
 #include <vector>
 #include <map>
 
+// icarus.h pulls this header into the four ICARUS runtime files that do get
+// compiled, so <windows.h> would follow the tokenizer onto every platform.
+// Nothing here needs it - the types it seemed to want are defined just below.
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 typedef unsigned char byte;
 typedef unsigned short word;

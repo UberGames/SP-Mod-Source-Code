@@ -39,6 +39,18 @@
 
 //#pragma intrinsic( memset, memcpy )
 
+#else
+
+// MSVC spells the case-insensitive compares without a leading underscore and
+// this code uses that spelling in about sixty places.  Everywhere else they
+// are the POSIX names out of <strings.h>, and strlwr / strupr do not exist at
+// all - Q_strlwr and Q_strupr below stand in for those.
+#include <strings.h>
+#define stricmp		strcasecmp
+#define strnicmp	strncasecmp
+#define strlwr		Q_strlwr
+#define strupr		Q_strupr
+
 #endif
 
 

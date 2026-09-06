@@ -97,8 +97,11 @@ int CBlockMember::ReadMember( char **stream, long *streamPos )
 	m_id = *(int *) (*stream + *streamPos);
 	*streamPos += sizeof( int );
 
-	m_size = *(long *) (*stream + *streamPos);
-	*streamPos += sizeof( long );
+	// the file stores a four-byte size (long was four bytes on the 32-bit
+	// compilers that wrote the .ibi files); reading a long here would be
+	// eight bytes on LP64 and run off the end of the stream
+	m_size = *(int *) (*stream + *streamPos);
+	*streamPos += sizeof( int );
 
 	m_data = malloc( m_size );
 	memset( m_data, 0, m_size );

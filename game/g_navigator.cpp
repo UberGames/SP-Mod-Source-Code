@@ -242,7 +242,7 @@ Save
 int	CNode::Save( int numNodes, fileHandle_t file )
 {
 	//Write out the header
-	unsigned long header = NODE_HEADER_ID;
+	unsigned int header = NODE_HEADER_ID;	// four bytes on disk (long was, on the 32-bit compiler that wrote the retail .nav files)
 	gi.FS_Write( &header, sizeof( header ), file );
 
 	//Write out the basic information
@@ -281,7 +281,7 @@ Load
 
 int CNode::Load( int numNodes, fileHandle_t file )
 {
-	unsigned long header;
+	unsigned int header;	// four bytes on disk
 	gi.FS_Read( &header, sizeof(header), file );
 
 	//Validate the header
@@ -391,7 +391,7 @@ GetLong
 
 long CNavigator::GetLong( fileHandle_t file )
 {
-	long value;
+	int value;	// the field is four bytes on disk; long is eight on LP64
 
 	gi.FS_Read( &value, sizeof( value ), file );
 
@@ -497,7 +497,7 @@ bool CNavigator::Save( const char *filename, int checksum )
 		return false;
 
 	//Write out the header id
-	unsigned long id = NAV_HEADER_ID;
+	unsigned int id = NAV_HEADER_ID;	// four bytes on disk
 
 	gi.FS_Write( &id, sizeof (id), file );
 

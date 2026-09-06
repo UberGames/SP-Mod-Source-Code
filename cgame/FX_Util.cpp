@@ -260,7 +260,7 @@ Adds a sprite to the FX wrapper render list
 ===============
 */
 
-inline FXSprite *FX_AddSprite( vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, float roll, float elasticity, float killTime, qhandle_t shader, int flags )
+FXSprite *FX_AddSprite( vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, float roll, float elasticity, float killTime, qhandle_t shader, int flags )
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -279,7 +279,7 @@ Overloaded for RGB
 ===============
 */
 
-inline FXSprite *FX_AddSprite( vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float roll, float elasticity, float killTime, qhandle_t shader, int flags )
+FXSprite *FX_AddSprite( vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float roll, float elasticity, float killTime, qhandle_t shader, int flags )
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -320,7 +320,7 @@ Adds a electricity bolt to the FX wrapper render list
 ===============
 */
 
-inline FXElectricity *FX_AddElectricity( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, 
+FXElectricity *FX_AddElectricity( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, 
 											float startalpha, float endalpha, float killTime, qhandle_t shader, 
 											int flags, float deviation )
 {
@@ -363,7 +363,7 @@ overloaded to pass default deviation
 ===============
 */
 
-inline FXElectricity *FX_AddElectricity( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, 
+FXElectricity *FX_AddElectricity( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, 
 											float startalpha, float endalpha, float killTime, qhandle_t shader, int flags )
 {
 	if (cg.frametime <= 0)	//skip out if paused
@@ -380,7 +380,7 @@ Adds a particle to the FX wrapper render list
 ===============
 */
 
-inline FXParticle *FX_AddParticle( centity_t *owner, vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, float roll, float elasticity, float killTime, qhandle_t shader, int flags, bool (*think)(FXPrimitive *, centity_t *) )
+FXParticle *FX_AddParticle( centity_t *owner, vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, float roll, float elasticity, float killTime, qhandle_t shader, int flags, bool (*think)(FXPrimitive *, centity_t *) )
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -399,7 +399,7 @@ Overloaded for RGB
 ===============
 */
 
-inline FXParticle *FX_AddParticle( centity_t *owner, vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float roll, float elasticity, float killTime, qhandle_t shader, int flags, bool (*think)(FXPrimitive *, centity_t *) )
+FXParticle *FX_AddParticle( centity_t *owner, vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float roll, float elasticity, float killTime, qhandle_t shader, int flags, bool (*think)(FXPrimitive *, centity_t *) )
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -442,7 +442,7 @@ Adds a triangle to the FX wrapper render list
 ===============
 */
 
-inline FXTri *FX_AddTri( vec3_t origin, vec3_t origin2, vec3_t origin3, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags )
+FXTri *FX_AddTri( vec3_t origin, vec3_t origin2, vec3_t origin3, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags )
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -459,7 +459,7 @@ Overloaded for RGB
 ===============
 */
 
-inline FXTri *FX_AddTri( vec3_t origin, vec3_t origin2, vec3_t origin3, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float killTime, qhandle_t shader,  int flags)
+FXTri *FX_AddTri( vec3_t origin, vec3_t origin2, vec3_t origin3, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float killTime, qhandle_t shader,  int flags)
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -495,7 +495,7 @@ Adds a quad to the FX wrapper render list
 ===============
 */
 
-inline FXQuad *FX_AddQuad( vec3_t origin, vec3_t normal, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, float roll, float droll, float elasticity, float killTime, qhandle_t shader )
+FXQuad *FX_AddQuad( vec3_t origin, vec3_t normal, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, float roll, float droll, float elasticity, float killTime, qhandle_t shader )
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -514,7 +514,7 @@ Overloaded for RGB
 ===============
 */
 
-inline FXQuad *FX_AddQuad( vec3_t origin, vec3_t normal, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float roll, float droll, float elasticity, float killTime, qhandle_t shader )
+FXQuad *FX_AddQuad( vec3_t origin, vec3_t normal, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float roll, float droll, float elasticity, float killTime, qhandle_t shader )
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -555,7 +555,7 @@ Adds a line to the FX wrapper render list
 ===============
 */
 
-inline FXLine *FX_AddLine( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags )
+FXLine *FX_AddLine( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags )
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -574,7 +574,7 @@ Overloaded for RGB
 ===============
 */
 
-inline FXLine *FX_AddLine( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float killTime, qhandle_t shader, int flags )
+FXLine *FX_AddLine( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float killTime, qhandle_t shader, int flags )
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -626,7 +626,7 @@ Overloaded for RGB
 ===============
 */
 
-inline FXLine2 *FX_AddLine2( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float scale2, float dscale2, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags )
+FXLine2 *FX_AddLine2( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float scale2, float dscale2, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags )
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -664,7 +664,7 @@ FX_AddSpawner
 ===============
 */
 
-inline FXSpawner *FX_AddSpawner( vec3_t origin, vec3_t angles, vec3_t velocity, vec3_t user, int delay, float variance, float killTime, void *think, localEntity_t *owner, int radius )
+FXSpawner *FX_AddSpawner( vec3_t origin, vec3_t angles, vec3_t velocity, vec3_t user, int delay, float variance, float killTime, fxSpawnerThink_t think, localEntity_t *owner, int radius )
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -678,7 +678,7 @@ FX_AddSpawner
 ===============
 */
 
-inline FXSpawner *FX_AddSpawner( vec3_t origin, vec3_t angles, vec3_t velocity, vec3_t user, int delay, float variance, float killTime, int flags, void *think, localEntity_t *owner, int radius )
+FXSpawner *FX_AddSpawner( vec3_t origin, vec3_t angles, vec3_t velocity, vec3_t user, int delay, float variance, float killTime, int flags, fxSpawnerThink_t think, localEntity_t *owner, int radius )
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -700,7 +700,7 @@ inline FXSpawner *FX_AddSpawner( vec3_t origin, vec3_t angles, vec3_t velocity, 
 
 	spawner->SetOwner( owner );
 
-	spawner->Think = (void (__cdecl *)(vec3_t, vec3_t, vec3_t, vec3_t)) think;
+	spawner->Think = think;
 	
 	if ( flags & FXF_DELAY_SPAWN )
 	{
@@ -727,7 +727,7 @@ Adds a bezier curve
 ===============
 */
 
-inline FXBezier *FX_AddBezier( vec3_t origin, vec3_t origin2, vec3_t control1, vec3_t control2, vec3_t control1_vel, vec3_t control2_vel, vec3_t control1_accel, vec3_t control2_accel, float scale, float dscale, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags )
+FXBezier *FX_AddBezier( vec3_t origin, vec3_t origin2, vec3_t control1, vec3_t control2, vec3_t control1_vel, vec3_t control2_vel, vec3_t control1_accel, vec3_t control2_accel, float scale, float dscale, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags )
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -747,7 +747,7 @@ Overloaded for RGB
 ===============
 */
 
-inline FXBezier *FX_AddBezier( vec3_t origin, vec3_t origin2, vec3_t control1, vec3_t control2, vec3_t control1_vel, vec3_t control2_vel, vec3_t control1_accel, vec3_t control2_accel, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float killTime, qhandle_t shader, int flags )
+FXBezier *FX_AddBezier( vec3_t origin, vec3_t origin2, vec3_t control1, vec3_t control2, vec3_t control1_vel, vec3_t control2_vel, vec3_t control1_accel, vec3_t control2_accel, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float killTime, qhandle_t shader, int flags )
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -792,7 +792,7 @@ Adds a trail to the FX wrapper render list
 ===============
 */
 
-inline FXTrail *FX_AddTrail( vec3_t origin, vec3_t velocity, vec3_t acceleration, float length, float dlength, float scale, float dscale, float startalpha, float endalpha, float elasticity, float killTime, qhandle_t shader, int flags)
+FXTrail *FX_AddTrail( vec3_t origin, vec3_t velocity, vec3_t acceleration, float length, float dlength, float scale, float dscale, float startalpha, float endalpha, float elasticity, float killTime, qhandle_t shader, int flags)
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -811,7 +811,7 @@ overloaded for RGB
 ===============
 */
 
-inline FXTrail *FX_AddTrail( vec3_t origin, vec3_t velocity, vec3_t acceleration, float length, float dlength, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float elasticity, float killTime, qhandle_t shader, int flags)
+FXTrail *FX_AddTrail( vec3_t origin, vec3_t velocity, vec3_t acceleration, float length, float dlength, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float elasticity, float killTime, qhandle_t shader, int flags)
 {
 	if (cg.frametime <= 0)	//skip out if paused
 		return NULL;
@@ -855,7 +855,7 @@ Adds a cylinder to the FX wrapper render list
 
 //NOTENOTE: The reigning king of parameters!
 
-inline FXCylinder *FX_AddCylinder(	vec3_t start, 
+FXCylinder *FX_AddCylinder(	vec3_t start, 
 									vec3_t normal,
 									float height,
 									float dheight,
@@ -888,7 +888,7 @@ Overloaded for RGB
 //NOTENOTE: The reigning king of parameters!
 #define DEFAULT_ST_SCALE	1.0f
 
-inline FXCylinder *FX_AddCylinder(	vec3_t start, 
+FXCylinder *FX_AddCylinder(	vec3_t start, 
 									vec3_t normal,
 									float height,
 									float dheight,

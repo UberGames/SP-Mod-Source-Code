@@ -135,7 +135,7 @@ void UI_ForceMenuOff (void)
 UI_LerpColor
 =================
 */
-static void UI_LerpColor(vec4_t a, vec4_t b, vec4_t c, float t)
+void UI_LerpColor(vec4_t a, vec4_t b, vec4_t c, float t)
 {
 	int i;
 
@@ -495,7 +495,7 @@ static void UI_DrawProportionalString2( int x, int y, const char* str, vec4_t co
 UI_ProportionalSizeScale
 =================
 */
-static float UI_ProportionalSizeScale( int style ) 
+float UI_ProportionalSizeScale( int style ) 
 {
 
 	if(  style & UI_SMALLFONT ) 
@@ -835,7 +835,7 @@ void UI_DrawChar( int x, int y, int ch, int style, vec4_t color )
 	UI_DrawString( x, y, buff, style, color );
 }
 
-static void UI_GetActiveMenu( char **menuname, qboolean *fullscreen ) {
+void UI_GetActiveMenu( char **menuname, qboolean *fullscreen ) {
 	if ( uis.activemenu && ( ui.Key_GetCatcher() & KEYCATCH_UI ) ) {
 		if ( menuname ) {
 			strcpy( *menuname, "unknown" );
@@ -856,7 +856,7 @@ static void NeedCDAction( qboolean result ) {
 	}
 }
 
-static void UI_SetActiveMenu( const char* menuname,const char *menuID ) {
+void UI_SetActiveMenu( const char* menuname,const char *menuID ) {
 	// this should be the ONLY way the menu system is brought up (besides the UI_ConsoleCommand below)
 
 	if (!ui.SG_GameAllowedToSaveHere(qtrue))	//don't check full sytem, only if incamera
@@ -1033,7 +1033,7 @@ static void UI_SetActiveMenu( const char* menuname,const char *menuID ) {
 UI_KeyEvent
 =================
 */
-static void UI_KeyEvent( int key ) {
+void UI_KeyEvent( int key ) {
 	sfxHandle_t		s;
 
 	if (!uis.activemenu) {
@@ -1116,7 +1116,7 @@ static void UI_MouseEvent( int dx, int dy )
 	}
 }
 
-static char *UI_Argv( int arg ) {
+char *UI_Argv( int arg ) {
 	static char	buffer[MAX_STRING_CHARS];
 
 	ui.Argv( arg, buffer, sizeof( buffer ) );
@@ -1476,7 +1476,7 @@ void UI_DrawNamedPic( float x, float y, float width, float height, const char *p
 	ui.R_DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
 }
 
-static void UI_DrawPic( float x, float y, float w, float h, char *pic ) 
+void UI_DrawPic( float x, float y, float w, float h, char *pic ) 
 {
 	UI_DrawNamedPic (x, y, w, h, va("gfx/2d/%s", pic ) );
 }
@@ -1547,7 +1547,7 @@ void UI_DrawRect( float x, float y, float width, float height, const float *colo
 	ui.R_SetColor( NULL );
 }
 
-static void UI_SetColor( const float *rgba ) {
+void UI_SetColor( const float *rgba ) {
 	ui.R_SetColor( rgba );
 }
 
@@ -1560,7 +1560,7 @@ void UI_UpdateScreen( void ) {
 UI_Refresh
 =================
 */
-static void UI_Refresh( int realtime )
+void UI_Refresh( int realtime )
 {
 	vec4_t color;
 	uis.frametime = realtime - uis.realtime;
@@ -1666,7 +1666,7 @@ Take x,y positions as if 640 x 480 and scales them to the proper resolution
 
 ==============
 */
-static void UI_DrawNumField (int x, int y, int width, int value,int charWidth,int charHeight)
+void UI_DrawNumField (int x, int y, int width, int value,int charWidth,int charHeight)
 {
 	char	num[16], *ptr;
 	int		l;
@@ -2133,7 +2133,7 @@ static char *UI_ParseFontParms(char *buffer,int	propArray[CHARMAX][3])
 UI_LoadFonts
 =================
 */
-static void UI_LoadFonts( void ) 
+void UI_LoadFonts( void ) 
 {
 	char buffer[FONT_BUFF_LENGTH];
 	int len;
@@ -2387,7 +2387,7 @@ void UI_LanguageFilename(char *baseName,char *baseExtension,char *finalName)
 UI_LoadMenu_f
 ===============
 */
-static void UI_LoadMenu_f( void ) 
+void UI_LoadMenu_f( void ) 
 {
 	if ((ui.Cvar_VariableValue( "cg_virtualVoyager" )==1)&& (holoMatch	== qfalse))
 	{
@@ -2407,7 +2407,7 @@ void UI_VirtualSaveMenu(int from);
 UI_SaveMenu_f
 ===============
 */
-static void UI_SaveMenu_f( void ) 
+void UI_SaveMenu_f( void ) 
 {
 
 

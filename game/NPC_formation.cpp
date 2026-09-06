@@ -832,7 +832,8 @@ int NPC_BuildSquadPointDistances( gentity_t *self, const vec3_t center, squadPat
 	VectorCopy( center, self->NPC->lastSPCalcedOrg );
 
 	//calc relative distances for all
-	for ( int i = 0; i < squadPath->numWaypoints; i++ )
+	int i;
+	for ( i = 0; i < squadPath->numWaypoints; i++ )
 	{
 		VectorSubtract( squadPath->waypoints[i].origin, center, vec );
 		

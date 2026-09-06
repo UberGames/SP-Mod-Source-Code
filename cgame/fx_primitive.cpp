@@ -601,7 +601,7 @@ DrawSegment
 -------------------------
 */
 
-inline void FXElectricity::DrawSegment( vec3_t start, vec3_t end, float scale, float tcStart, float tcEnd )
+void FXElectricity::DrawSegment( vec3_t start, vec3_t end, float scale, float tcStart, float tcEnd )
 {
 	vec3_t		lineDir, cross, viewDir;
 	polyVert_t	verts[4];
@@ -1523,7 +1523,8 @@ bool FXBezier::Update( void )
 	ftime = cg.frametime * 0.001f;
 	time2 = ftime * ftime * 0.5f;
 
-	for ( int i = 0 ; i < 3 ; i++ ) 
+	int i;
+	for ( i = 0 ; i < 3 ; i++ ) 
 	{
 		new_origin[i] = m_control1[i] + ftime * m_control1_velocity[i] + time2 * m_control1_velocity[i];
 	}
@@ -1550,7 +1551,7 @@ DrawSegment
 -------------------------
 */
 
-inline void FXBezier::DrawSegment( vec3_t start, vec3_t end, float texcoord1, float texcoord2 )
+void FXBezier::DrawSegment( vec3_t start, vec3_t end, float texcoord1, float texcoord2 )
 {
 	vec3_t		lineDir, cross, viewDir;
 	polyVert_t	verts[4];

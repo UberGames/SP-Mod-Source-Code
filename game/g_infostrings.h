@@ -230,4 +230,4 @@ II_NUM_ITEMS
 
 
 int IS_GetInfostring( char *infostring_enum );
-ginfoitem_t	bg_infoItemList[];
+extern ginfoitem_t	bg_infoItemList[];

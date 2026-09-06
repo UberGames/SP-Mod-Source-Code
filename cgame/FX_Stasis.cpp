@@ -447,7 +447,7 @@ Creates new bolts for a while
 
 void FX_OrientedBolt( vec3_t start, vec3_t end, vec3_t dir )
 {
-	FX_AddSpawner( start, end, dir, NULL, 50, random() * 75, 300.0f + random() * 300, (void *) FX_StasisBoltThink, NULL, 680);
+	FX_AddSpawner( start, end, dir, NULL, 50, random() * 75, 300.0f + random() * 300, FX_StasisBoltThink, NULL, 680);
 }
 
 /*

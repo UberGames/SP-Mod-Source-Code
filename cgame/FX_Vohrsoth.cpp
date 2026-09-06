@@ -83,10 +83,10 @@ void FX_GroundTendrilSpawner( vec3_t start, vec3_t end )
 	VectorSubtract( end, start, normal );
 	VectorNormalize( normal );
 
-	FX_AddSpawner( start, normal, NULL, NULL, 50, 0.0f, 3500, (void *) FX_GroundTendril, NULL, 1000 );
+	FX_AddSpawner( start, normal, NULL, NULL, 50, 0.0f, 3500, FX_GroundTendril, NULL, 1000 );
 
 	VectorScale( normal, -1, normal );
-	FX_AddSpawner( end, normal, NULL, NULL, 50, 0.0f, 3500, (void *) FX_GroundTendril, NULL, 1000 );
+	FX_AddSpawner( end, normal, NULL, NULL, 50, 0.0f, 3500, FX_GroundTendril, NULL, 1000 );
 }
 
 /*
@@ -99,5 +99,5 @@ void FX_Vohrsoth_CreateGroundWarning( vec3_t origin )
 {
 	vec3_t	normal = { 0, 0, 1 };
 
-	FX_AddSpawner( origin, normal, NULL, NULL, 50, 0.0f, 1000, (void *) FX_GroundTendril, NULL, 1000 );
+	FX_AddSpawner( origin, normal, NULL, NULL, 50, 0.0f, 1000, FX_GroundTendril, NULL, 1000 );
 }

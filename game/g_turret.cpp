@@ -1090,7 +1090,8 @@ void stasis_shooter_active( gentity_t *self )
 	}
 
 	//Setup the bbox to search in
-	for ( int i = 0; i < 3; i++ )
+	int i;
+	for ( i = 0; i < 3; i++ )
 	{
 		mins[i] = self->currentOrigin[i] - 512;
 		maxs[i] = self->currentOrigin[i] + 512;

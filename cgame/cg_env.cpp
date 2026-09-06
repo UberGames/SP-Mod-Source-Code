@@ -23,7 +23,8 @@ void CG_Spark( vec3_t origin, vec3_t normal )
 
 	AngleVectors( normal, normal, NULL, NULL );
 
-	for ( int j = 0; j < 3; j ++ )
+	int j;
+	for ( j = 0; j < 3; j ++ )
 		normal[j] = normal[j] + (0.15f * crandom());
 
 	VectorNormalize( normal );
@@ -46,7 +47,8 @@ void CG_Spark( vec3_t origin, vec3_t normal )
 				125.0f,
 				cgs.media.sparkShader );
 	
-	for ( int i = 0; i < numSparks; i++ )
+	int i;
+	for ( i = 0; i < numSparks; i++ )
 	{	
 		scale = 0.2f + (random() *0.4);
 
@@ -190,7 +192,7 @@ void CG_Steam( vec3_t position, vec3_t dest, vec3_t dir, float scale, int flags 
 
 	if ( (flags & 2) )
 	{
-		FX_AddSpawner( position, dest, dir, user, 50, 0, 200 + ( random() * 500 ), (void *) SteamThink );
+		FX_AddSpawner( position, dest, dir, user, 50, 0, 200 + ( random() * 500 ), SteamThink );
 	}
 	else
 	{
@@ -305,12 +307,12 @@ void CG_Bolt( centity_t *cent )
 		if ( bw )
 		{
 			FX_AddSpawner( cent->lerpOrigin, cent->currentState.origin2, NULL, data, 70, random() * 25, 450, 
-					(void *) BlackAndWhiteBoltFireback, NULL, 768 );
+					BlackAndWhiteBoltFireback, NULL, 768 );
 		}
 		else if ( borg )
-			FX_AddSpawner( cent->lerpOrigin, cent->currentState.origin2, NULL, data, 70, random() * 25, 450, (void *) BorgBoltFireback, NULL, 768 );
+			FX_AddSpawner( cent->lerpOrigin, cent->currentState.origin2, NULL, data, 70, random() * 25, 450, BorgBoltFireback, NULL, 768 );
 		else
-			FX_AddSpawner( cent->lerpOrigin, cent->currentState.origin2, NULL, data, 70, random() * 25, 450, (void *) BoltFireback, NULL, 768 );
+			FX_AddSpawner( cent->lerpOrigin, cent->currentState.origin2, NULL, data, 70, random() * 25, 450, BoltFireback, NULL, 768 );
 	}
 	else
 	{
@@ -448,7 +450,7 @@ void CG_ForgeBolt( centity_t *cent )
 		data[DATA_CHAOS] = chaos;
 		data[DATA_RADIUS] = radius;
 
-		FX_AddSpawner( cent->lerpOrigin, cent->currentState.origin2, NULL, data, 70, random() * 25, 450, (void *) ForgeBoltFireback );
+		FX_AddSpawner( cent->lerpOrigin, cent->currentState.origin2, NULL, data, 70, random() * 25, 450, ForgeBoltFireback );
 	}
 	else
 	{
@@ -721,7 +723,8 @@ void CG_ElectricFire( vec3_t origin, vec3_t normal )
 
 	numSparks = 4 + (random() * 8.0f);
 	
-	for ( int i = 0; i < numSparks; i++ )
+	int i;
+	for ( i = 0; i < numSparks; i++ )
 	{	
 		scale = 0.3f + (random() *0.4);
 
@@ -1037,7 +1040,8 @@ void CG_SmallSpark( vec3_t origin, vec3_t normal )
 
 	AngleVectors( normal, normal, NULL, NULL );
 
-	for ( int j = 0; j < 3; j ++ )
+	int j;
+	for ( j = 0; j < 3; j ++ )
 		normal[j] = normal[j] + (0.1f * crandom());
 
 	VectorNormalize( normal );
@@ -1571,7 +1575,7 @@ void CG_ShimmeryThing_Spawner( vec3_t start, vec3_t end, float radius, qboolean 
 {
 	vec3_t	packed = { radius, (float) taper, 0 };
 
-	FX_AddSpawner( start, end, NULL, packed, 100, 0, duration, (void *) CG_Shimmer, NULL, 512 );
+	FX_AddSpawner( start, end, NULL, packed, 100, 0, duration, CG_Shimmer, NULL, 512 );
 }
 
 /*

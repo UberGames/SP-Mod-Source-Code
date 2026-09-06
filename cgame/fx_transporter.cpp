@@ -114,7 +114,7 @@ FX_Transporter
 void FX_Transporter( vec3_t org )//,qboolean replicator
 {
 	//FIXME: maybe find head tag and center of feet and make balls go between them (for horizontal people)
-	FX_AddSpawner( org, NULL, NULL, NULL, 500, 0, 650, (void *) TransporterParticle );
+	FX_AddSpawner( org, NULL, NULL, NULL, 500, 0, 650, TransporterParticle );
 	cgi_S_StartSound( org, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.transporterSound );
 }
 
@@ -195,7 +195,7 @@ FX_Replicator
 void FX_Replicator( centity_t *cent, vec3_t position )
 {
 	//FIXME: smaller effect?
-	FX_AddSpawner( position, NULL, NULL, NULL, 500, 0, 650, (void *) ReplicatorParticle );
+	FX_AddSpawner( position, NULL, NULL, NULL, 500, 0, 650, ReplicatorParticle );
 	cgi_S_StartSound( position, ENTITYNUM_WORLD, CHAN_AUTO, cgi_S_RegisterSound( "sound/movers/switches/replicator.wav" ) );
 	if ( cent->gent->owner )
 	{

@@ -339,7 +339,7 @@ Check
 -------------------------
 */
 
-inline bool CTaskManager::Check( int targetID, CBlock *block, int memberNum )
+bool CTaskManager::Check( int targetID, CBlock *block, int memberNum )
 {
 	if ( (block->GetMember( memberNum ))->GetID() == targetID )
 		return true;
@@ -1757,7 +1757,8 @@ void CTaskManager::Load( void )
 	(m_owner->GetInterface())->I_ReadSaveData( 'TSK#', &numTasks, sizeof( numTasks ) );
 	
 	//Reload all the tasks
-	for ( int i = 0; i < numTasks; i++ )
+	int i;
+	for ( i = 0; i < numTasks; i++ )
 	{
 		task = new CTask;
 

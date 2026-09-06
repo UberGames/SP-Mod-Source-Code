@@ -258,7 +258,7 @@ void CG_SurfaceExplosion( vec3_t origin, vec3_t normal, float radius, float shak
 	if ( smoke )
 	{
 		VectorMA( origin, -8, normal, temp_org );
-		FX_AddSpawner( temp_org, normal, NULL, NULL, 100, random()*25.0f, 5000.0f, (void *) CG_SmokeSpawn );
+		FX_AddSpawner( temp_org, normal, NULL, NULL, 100, random()*25.0f, 5000.0f, CG_SmokeSpawn );
 
 		//Impact mark
 		//FIXME: Replace mark

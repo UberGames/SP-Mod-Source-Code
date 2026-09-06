@@ -573,37 +573,40 @@ extern FX_state_t	*FX_nextValid;
 extern	void FX_Add( void );
 extern	int	FX_Init( void );
 
-extern inline FXSprite *FX_AddSprite( vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, float roll, float elasticity, float killTime, qhandle_t shader, int flags = 0);
-extern inline FXSprite *FX_AddSprite( vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float roll, float elasticity, float killTime, qhandle_t shader, int flags = 0);
+extern FXSprite *FX_AddSprite( vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, float roll, float elasticity, float killTime, qhandle_t shader, int flags = 0);
+extern FXSprite *FX_AddSprite( vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float roll, float elasticity, float killTime, qhandle_t shader, int flags = 0);
 
-extern inline FXElectricity *FX_AddElectricity( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags = 0 );
-extern inline FXElectricity *FX_AddElectricity( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags, float deviation );
+extern FXElectricity *FX_AddElectricity( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags = 0 );
+extern FXElectricity *FX_AddElectricity( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags, float deviation );
 
-extern inline FXParticle *FX_AddParticle( centity_t *owner, vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, float roll, float elasticity, float killTime, qhandle_t shader, int flags, bool (*think)(FXPrimitive *, centity_t *) );
-extern inline FXParticle *FX_AddParticle( centity_t *owner, vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float roll, float elasticity, float killTime, qhandle_t shader, int flags, bool (*think)(FXPrimitive *, centity_t *) );
+extern FXParticle *FX_AddParticle( centity_t *owner, vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, float roll, float elasticity, float killTime, qhandle_t shader, int flags, bool (*think)(FXPrimitive *, centity_t *) );
+extern FXParticle *FX_AddParticle( centity_t *owner, vec3_t origin, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float roll, float elasticity, float killTime, qhandle_t shader, int flags, bool (*think)(FXPrimitive *, centity_t *) );
 
-extern inline FXQuad *FX_AddQuad( vec3_t origin, vec3_t normal, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, float roll, float droll, float elasticity, float killTime, qhandle_t shader );
-extern inline FXQuad *FX_AddQuad( vec3_t origin, vec3_t normal, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float roll, float droll, float elasticity, float killTime, qhandle_t shader );
+extern FXQuad *FX_AddQuad( vec3_t origin, vec3_t normal, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, float roll, float droll, float elasticity, float killTime, qhandle_t shader );
+extern FXQuad *FX_AddQuad( vec3_t origin, vec3_t normal, vec3_t velocity, vec3_t acceleration, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float roll, float droll, float elasticity, float killTime, qhandle_t shader );
 
-extern inline FXLine *FX_AddLine( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags = 0 );
-extern inline FXLine *FX_AddLine( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float killTime, qhandle_t shader, int flags = 0 );
+extern FXLine *FX_AddLine( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags = 0 );
+extern FXLine *FX_AddLine( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float killTime, qhandle_t shader, int flags = 0 );
 
-extern inline FXLine2 *FX_AddLine2( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float scale2, float dscale2, float startalpha, float endalpha, float killtime, qhandle_t shader, int flags = 0 );
+extern FXLine2 *FX_AddLine2( vec3_t origin, vec3_t origin2, float stScale, float scale, float dscale, float scale2, float dscale2, float startalpha, float endalpha, float killtime, qhandle_t shader, int flags = 0 );
 
-extern inline FXTri *FX_AddTri( vec3_t origin, vec3_t origin2, vec3_t origin3, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags = 0  );
-extern inline FXTri *FX_AddTri( vec3_t origin, vec3_t origin2, vec3_t origin3, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float killTime, qhandle_t shader, int flags = 0 );
+extern FXTri *FX_AddTri( vec3_t origin, vec3_t origin2, vec3_t origin3, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags = 0  );
+extern FXTri *FX_AddTri( vec3_t origin, vec3_t origin2, vec3_t origin3, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float killTime, qhandle_t shader, int flags = 0 );
 
-extern inline FXSpawner *FX_AddSpawner( vec3_t origin, vec3_t angles, vec3_t velocity, vec3_t user, int delay, float variance, float killTime, void *think, localEntity_t *owner = NULL, int radius = DEFAULT_SPAWNER_RADIUS );
-extern inline FXSpawner *FX_AddSpawner( vec3_t origin, vec3_t angles, vec3_t velocity, vec3_t user, int delay, float variance, float killTime, int flags, void *think, localEntity_t *owner = NULL, int radius = DEFAULT_SPAWNER_RADIUS );
+// what FXSpawner::Think is; MSVC let a function pointer convert to void *
+typedef void (*fxSpawnerThink_t)( vec3_t origin, vec3_t angles, vec3_t velocity, vec3_t user );
 
-extern inline FXBezier *FX_AddBezier( vec3_t origin, vec3_t origin2, vec3_t control1, vec3_t control2, vec3_t control1_vel, vec3_t control2_vel, vec3_t control1_accel, vec3_t control2_accel, float scale, float dscale, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags = 0 );
-extern inline FXBezier *FX_AddBezier( vec3_t origin, vec3_t origin2, vec3_t control1, vec3_t control2, vec3_t control1_vel, vec3_t control2_vel, vec3_t control1_accel, vec3_t control2_accel, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float killTime, qhandle_t shader, int flags = 0 );
+extern FXSpawner *FX_AddSpawner( vec3_t origin, vec3_t angles, vec3_t velocity, vec3_t user, int delay, float variance, float killTime, fxSpawnerThink_t think, localEntity_t *owner = NULL, int radius = DEFAULT_SPAWNER_RADIUS );
+extern FXSpawner *FX_AddSpawner( vec3_t origin, vec3_t angles, vec3_t velocity, vec3_t user, int delay, float variance, float killTime, int flags, fxSpawnerThink_t think, localEntity_t *owner = NULL, int radius = DEFAULT_SPAWNER_RADIUS );
 
-extern inline FXTrail *FX_AddTrail( vec3_t origin, vec3_t velocity, vec3_t acceleration, float length, float dlength, float scale, float dscale, float startalpha, float endalpha, float elasticity, float killTime, qhandle_t shader, int flags = 0);
-extern inline FXTrail *FX_AddTrail( vec3_t origin, vec3_t velocity, vec3_t acceleration, float length, float dlength, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float elasticity, float killTime, qhandle_t shader, int flags = 0);
+extern FXBezier *FX_AddBezier( vec3_t origin, vec3_t origin2, vec3_t control1, vec3_t control2, vec3_t control1_vel, vec3_t control2_vel, vec3_t control1_accel, vec3_t control2_accel, float scale, float dscale, float startalpha, float endalpha, float killTime, qhandle_t shader, int flags = 0 );
+extern FXBezier *FX_AddBezier( vec3_t origin, vec3_t origin2, vec3_t control1, vec3_t control2, vec3_t control1_vel, vec3_t control2_vel, vec3_t control1_accel, vec3_t control2_accel, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float killTime, qhandle_t shader, int flags = 0 );
 
-extern inline FXCylinder *FX_AddCylinder( vec3_t start, vec3_t normal, float height, float dheight, float scale, float dscale, float scale2, float dscale2, float startalpha, float endalpha, float killTime, qhandle_t shader, float bias = 1.0 );
-extern inline FXCylinder *FX_AddCylinder( vec3_t start, vec3_t normal, float height, float dheight, float scale, float dscale, float scale2, float dscale2, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float killTime, qhandle_t shader, float bias = 1.0 );
+extern FXTrail *FX_AddTrail( vec3_t origin, vec3_t velocity, vec3_t acceleration, float length, float dlength, float scale, float dscale, float startalpha, float endalpha, float elasticity, float killTime, qhandle_t shader, int flags = 0);
+extern FXTrail *FX_AddTrail( vec3_t origin, vec3_t velocity, vec3_t acceleration, float length, float dlength, float scale, float dscale, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float elasticity, float killTime, qhandle_t shader, int flags = 0);
+
+extern FXCylinder *FX_AddCylinder( vec3_t start, vec3_t normal, float height, float dheight, float scale, float dscale, float scale2, float dscale2, float startalpha, float endalpha, float killTime, qhandle_t shader, float bias = 1.0 );
+extern FXCylinder *FX_AddCylinder( vec3_t start, vec3_t normal, float height, float dheight, float scale, float dscale, float scale2, float dscale2, float startalpha, float endalpha, vec3_t startRGB, vec3_t endRGB, float killTime, qhandle_t shader, float bias = 1.0 );
 
 float FX_DetailLevel( vec3_t origin, float near_clip, float far_clip );
 

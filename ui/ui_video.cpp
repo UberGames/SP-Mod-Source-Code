@@ -545,15 +545,16 @@ static void UpdateMenuItemValues( void )
 
 // The engine can publish its own mode table as r_modeList ("320x240 400x300 ..."
 // indexed by r_mode).  When it does, the resolution spin control is built from
-// that at run time - modes 0 and 1 hidden as the retail menu hides them, and a
-// final DESKTOP entry for r_mode -2 - so new sizes need no menu text data.
+// that at run time - modes 0 and 1 hidden as the retail menu hides them - so
+// new sizes need no menu text data.  There is no DESKTOP entry: r_mode -2
+// remains settable from the console, it just has no menu representation.
 // An engine without the cvar keeps the fixed MNT_ list.
 #define VIDEO_MODE_FIRST	2
 #define VIDEO_MODE_MAX		40
 static char			s_videoModeLabels[VIDEO_MODE_MAX][16];
 static const char	*s_videoModeNames[VIDEO_MODE_MAX + 2];
-static int			s_videoModeCount;		// entries before DESKTOP, 0 when the engine has no r_modeList
-static int			s_videoModeNumbers[VIDEO_MODE_MAX + 1];	// r_mode value for each visible entry, +1 for DESKTOP
+static int			s_videoModeCount;		// entries in the list, 0 when the engine has no r_modeList
+static int			s_videoModeNumbers[VIDEO_MODE_MAX];	// r_mode value for each visible entry
 
 // aspect categories, in the order they appear in the control
 #define VIDEO_ASPECT_ALL	0
@@ -610,14 +611,36 @@ static int VideoModes_Build( int category, int currentMode )
 		s_videoModeNumbers[n] = mode;
 		n++;
 	}
-	if ( n )
-	{
-		s_videoModeNames[n] = "DESKTOP";
-		s_videoModeNumbers[n] = -2;
-		s_videoModeNames[n + 1] = NULL;
-	}
+	s_videoModeNames[n] = NULL;
 	s_videoModeCount = n;
 	return n;
+}
+
+/*
+Rebuild the resolution list for `category` and select `mode` within it.
+`mode` is always kept in the list by VideoModes_Build regardless of category
+(see its `mode != currentMode` bypass) -- except when it has no menu
+representation at all, namely the console-only r_mode -2 ("desktop").  In
+that case nothing in the list matches, and curvalue defaults to entry 0
+rather than being left unset: the control then honestly displays a real
+resolution, and Apply only ever writes what's shown, never r_mode -2 itself
+or a stale/out-of-range value.
+*/
+static void VideoModes_SelectCurrent( int category, int mode )
+{
+	int i;
+
+	VideoModes_Build( category, mode );
+
+	s_video_mode_list.curvalue = 0;
+	for ( i = 0; i < s_videoModeCount; i++ )
+	{
+		if ( s_videoModeNumbers[i] == mode )
+		{
+			s_video_mode_list.curvalue = i;
+			break;
+		}
+	}
 }
 
 /*
@@ -644,17 +667,7 @@ static void GetVideoMenuItemValues( void )
 		}
 
 		s_video_aspect_list.curvalue = ( mode == -2 ) ? VIDEO_ASPECT_ALL : VideoModes_Category( w, h );
-		VideoModes_Build( s_video_aspect_list.curvalue, mode );
-
-		s_video_mode_list.curvalue = 0;
-		for ( i = 0; i <= s_videoModeCount; i++ )
-		{
-			if ( s_videoModeNumbers[i] == mode )
-			{
-				s_video_mode_list.curvalue = i;
-				break;
-			}
-		}
+		VideoModes_SelectCurrent( s_video_aspect_list.curvalue, mode );
 	}
 	else
 	{
@@ -791,21 +804,7 @@ static void AspectCallback( void *s, int notification )
 		return;
 
 	// rebuild the resolution list for the newly chosen category
-	{
-		int mode = ui.Cvar_VariableValue( "r_mode" );
-		int i;
-
-		VideoModes_Build( s_video_aspect_list.curvalue, mode );
-		s_video_mode_list.curvalue = 0;
-		for ( i = 0; i <= s_videoModeCount; i++ )
-		{
-			if ( s_videoModeNumbers[i] == mode )
-			{
-				s_video_mode_list.curvalue = i;
-				break;
-			}
-		}
-	}
+	VideoModes_SelectCurrent( s_video_aspect_list.curvalue, ui.Cvar_VariableValue( "r_mode" ) );
 }
 
 /*
@@ -1595,7 +1594,7 @@ static void VideoData_MenuInit( void )
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_mode_option_list);
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_driver_list);
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_extension_enable_list);
-	if ( s_videoModeCount )
+	if ( s_video_aspect_shown )
 		Menu_AddItem( &s_video_menu, ( void * )&s_video_aspect_list);
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_mode_list);
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_colordepth_list);

@@ -2962,6 +2962,18 @@ void CalcMuzzlePoint( gentity_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 	case WP_BORG_TASER:
 	case WP_BORG_WEAPON:
 	case WP_PHASER:
+		// LEFT AS SHIPPED, DELIBERATELY.  == binds tighter than &, so each test
+		// reads torsoAnim & (~ANIM_TOGGLEBIT == TORSO_WEAPONREADY2), and
+		// ~1024 is never equal to a small positive animation number: the
+		// comparison is 0, torsoAnim & 0 is 0, and this branch has never run
+		// in any build of Elite Force.  NPCs holding a two-handed weapon get
+		// the muzzle 16 units up rather than at eye height, which is the
+		// behaviour every player of the retail game has seen.
+		// Everywhere else in this codebase the idiom is parenthesised, and by
+		// Jedi Outcast Raven had dropped the mask from this very test, so the
+		// intent was clearly (torsoAnim & ~ANIM_TOGGLEBIT) == TORSO_WEAPONREADY2.
+		// Adding the parentheses would move NPC phaser fire, so it is a
+		// gameplay change, not a compile fix.  Do not "correct" this silently.
 		if(ent->NPC!=NULL &&
 			(ent->client->ps.torsoAnim&~ANIM_TOGGLEBIT == TORSO_WEAPONREADY2 ||
 			ent->client->ps.torsoAnim&~ANIM_TOGGLEBIT == BOTH_ATTACK2))//Sniper pose

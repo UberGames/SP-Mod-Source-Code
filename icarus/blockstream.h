@@ -6,6 +6,7 @@
 #pragma warning(disable : 4786)  //identifier was truncated 
 
 #include <stdio.h>
+#include <stdlib.h>	// malloc, free
 
 #include <list>
 #include <vector>

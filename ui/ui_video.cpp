@@ -541,6 +541,45 @@ static void UpdateMenuItemValues( void )
 }	
 
 
+// The engine can publish its own mode table as r_modeList ("320x240 400x300 ..."
+// indexed by r_mode).  When it does, the resolution spin control is built from
+// that at run time - modes 0 and 1 hidden as the retail menu hides them, and a
+// final DESKTOP entry for r_mode -2 - so new sizes need no menu text data.
+// An engine without the cvar keeps the fixed MNT_ list.
+#define VIDEO_MODE_FIRST	2
+#define VIDEO_MODE_MAX		40
+static char			s_videoModeLabels[VIDEO_MODE_MAX][16];
+static const char	*s_videoModeNames[VIDEO_MODE_MAX + 2];
+static int			s_videoModeCount;		// entries before DESKTOP, 0 when the engine has no r_modeList
+
+static int VideoModes_Build( void )
+{
+	char	list[1024];
+	char	*p;
+	int		mode = 0, n = 0;
+
+	ui.Cvar_VariableStringBuffer( "r_modeList", list, sizeof( list ) );
+	for ( p = list; *p && n < VIDEO_MODE_MAX; mode++ )
+	{
+		char *tok = p;
+		while ( *p && *p != ' ' ) p++;
+		if ( *p ) *p++ = '\0';
+		if ( mode < VIDEO_MODE_FIRST )
+			continue;
+		Q_strncpyz( s_videoModeLabels[n], tok, sizeof( s_videoModeLabels[n] ) );
+		Q_strupr( s_videoModeLabels[n] );		// the menu font is upper case
+		s_videoModeNames[n] = s_videoModeLabels[n];
+		n++;
+	}
+	if ( n )
+	{
+		s_videoModeNames[n] = "DESKTOP";
+		s_videoModeNames[n + 1] = NULL;
+	}
+	s_videoModeCount = n;
+	return n;
+}
+
 /*
 ===============
 GetVideoMenuItemValues
@@ -548,11 +587,24 @@ GetVideoMenuItemValues
 */
 static void GetVideoMenuItemValues( void )
 {
-	// Subtractin 2 because we don't show 320x200 and MNT_400X300
-	s_video_mode_list.curvalue = ui.Cvar_VariableValue( "r_mode" ) - 2;
-	if ( s_video_mode_list.curvalue < 0 )
+	if ( s_videoModeCount || VideoModes_Build() )
 	{
-		s_video_mode_list.curvalue = 1;
+		int mode = ui.Cvar_VariableValue( "r_mode" );
+		if ( mode == -2 )
+			s_video_mode_list.curvalue = s_videoModeCount;		// DESKTOP
+		else if ( mode >= VIDEO_MODE_FIRST && mode < VIDEO_MODE_FIRST + s_videoModeCount )
+			s_video_mode_list.curvalue = mode - VIDEO_MODE_FIRST;
+		else
+			s_video_mode_list.curvalue = 1;
+	}
+	else
+	{
+		// Subtractin 2 because we don't show 320x200 and MNT_400X300
+		s_video_mode_list.curvalue = ui.Cvar_VariableValue( "r_mode" ) - 2;
+		if ( s_video_mode_list.curvalue < 0 )
+		{
+			s_video_mode_list.curvalue = 1;
+		}
 	}
 
 	s_video_fullscreen_list.curvalue = ui.Cvar_VariableValue("r_fullscreen");
@@ -791,9 +843,12 @@ static void ApplyChanges( void *unused, int notification )
 
 	ui.Cvar_SetValue( "r_ext_compress_textures", s_video_compresstextures.curvalue );
 
-	// Adding 2 because we don't show 320x200 and MNT_400X300
 	// Video Resolution Setting
-	ui.Cvar_SetValue( "r_mode", (s_video_mode_list.curvalue +2) );
+	if ( s_videoModeCount )
+		ui.Cvar_SetValue( "r_mode", s_video_mode_list.curvalue == s_videoModeCount ? -2 : s_video_mode_list.curvalue + VIDEO_MODE_FIRST );
+	else
+		// Adding 2 because we don't show 320x200 and MNT_400X300
+		ui.Cvar_SetValue( "r_mode", (s_video_mode_list.curvalue +2) );
 
 	// Fullscreen Setting
 	ui.Cvar_SetValue( "r_fullscreen", s_video_fullscreen_list.curvalue );
@@ -1235,7 +1290,16 @@ static void VideoData_MenuInit( void )
 	s_video_mode_list.color2						= CT_LTPURPLE1;
 	s_video_mode_list.textX							= 5;
 	s_video_mode_list.textY							= 2;
-	s_video_mode_list.listnames						= s_resolutions;
+	if ( VideoModes_Build() )
+	{
+		s_video_mode_list.itemnames					= s_videoModeNames;
+		s_video_mode_list.listnames					= NULL;
+	}
+	else
+	{
+		s_video_mode_list.itemnames					= NULL;
+		s_video_mode_list.listnames					= s_resolutions;
+	}
 	s_video_mode_list.width							= width;
 
 	y += inc;

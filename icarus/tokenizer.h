@@ -6,6 +6,8 @@
 
 #pragma warning( disable : 4786 )  // identifier was truncated 
 
+#include <stdlib.h>	// malloc, free: libstdc++ does not reach them through <string>
+#include <string.h>	// strcmp, strlen
 #include <string>
 #include <vector>
 #include <map>

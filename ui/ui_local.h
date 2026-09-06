@@ -1888,6 +1888,7 @@ extern sfxHandle_t Menu_ActivateItem( menuframework_s *s, menucommon_s* item );
 extern void		Menu_SetStatusBar( menuframework_s *s, const char *string );
 extern void		Menu_SlideItem( menuframework_s *s, int dir );
 extern void		Menu_SetCursor( menuframework_s *s, int cursor );
+extern void		Menu_CloseSpinList( menuframework_s *menu );
 sfxHandle_t		Menu_DefaultKey( menuframework_s *s, int key );
 extern void Mouse_Show(void);
 extern void Mouse_Hide(void);

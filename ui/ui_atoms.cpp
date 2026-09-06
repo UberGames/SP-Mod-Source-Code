@@ -54,6 +54,12 @@ void UI_PushMenu( menuframework_s *menu )
 	int		i;
 	menucommon_s*	item;
 
+	// TiM - self-healing: a menuframework_s is a persistent static reused
+	// across opens, so make sure no stale open spin list (and the mouse-focus
+	// lock that comes with it) survives from whatever state it was left in
+	// last time this menu was on screen
+	Menu_CloseSpinList( menu );
+
 	// avoid stacking menus invoked by hotkeys
 	for (i=0 ; i<uis.menusp ; i++)
 	{

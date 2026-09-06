@@ -275,6 +275,7 @@ static const char *s_drivers[] =
 
 static void ApplyChanges( void *unused, int notification );
 static void ApplyChanges2( void *unused, int notification );
+static int  VideoModes_CurrentNumber( void );
 
 /*
 =======================================================================
@@ -342,7 +343,9 @@ static void GetInitialVideoVars( void )
 {
 	s_ivo.colordepth = s_video_colordepth_list.curvalue;
 	s_ivo.driver = s_video_driver_list.curvalue;
-	s_ivo.mode = s_video_mode_list.curvalue;
+	// a real r_mode number, not a list index - the aspect filter renumbers
+	// the list on every category change, so an index alone goes stale
+	s_ivo.mode = VideoModes_CurrentNumber();
 	s_ivo.fullscreen = s_video_fullscreen_list.curvalue;
 	s_ivo.extensions = s_video_extension_enable_list.curvalue;
 	s_ivo.tq = s_video_texture_quality_list.curvalue;
@@ -444,7 +447,13 @@ static void UpdateMenuItemValues( void )
 
 	// Check and see if anything has changed from the original data
 	s_video_mode_list.updated = 0;
-	if ( s_ivo.mode != s_video_mode_list.curvalue )
+	// TiM - compare mode NUMBERS, not list indices: the aspect filter can
+	// (and does) change which index a given resolution sits at without the
+	// resolution itself changing, and it must not blink APPLY for that; the
+	// converse also matters - picking a resolution whose new index happens
+	// to equal the old one must still register as a real change, or APPLY
+	// stays greyed and Menu_DefaultKey refuses to let it be activated
+	if ( s_ivo.mode != VideoModes_CurrentNumber() )
 	{
 		s_video_mode_list.updated = 1;
 		s_video_apply_action.generic.flags &= ~QMF_GRAYED;
@@ -632,6 +641,14 @@ static void VideoModes_SelectCurrent( int category, int mode )
 
 	VideoModes_Build( category, mode );
 
+	// SpinControl_Init only ever counts itemnames once, at Menu_AddItem time,
+	// against the unfiltered ALL list built before the control was added -
+	// every rebuild after that (this one included) has to keep numitems in
+	// step by hand, or the control walks past the filtered array's NULL
+	// terminator (SpinControl_Draw/SpinControl_InitListRender) into
+	// uninitialised memory.
+	s_video_mode_list.numitems = s_videoModeCount;
+
 	s_video_mode_list.curvalue = 0;
 	for ( i = 0; i < s_videoModeCount; i++ )
 	{
@@ -641,6 +658,31 @@ static void VideoModes_SelectCurrent( int category, int mode )
 			break;
 		}
 	}
+}
+
+/*
+The resolution control's current selection as a real r_mode number, rather
+than its list index.  The aspect filter renumbers the list on every category
+change, so an index alone cannot be safely captured and compared later - only
+the real mode number survives a rebuild.  Retail fallback (no r_modeList,
+s_videoModeCount == 0) has no filtering and no renumbering, so its index
+already is a stable identity and is returned as-is.
+*/
+static int VideoModes_CurrentNumber( void )
+{
+	if ( s_videoModeCount )
+	{
+		int curvalue = s_video_mode_list.curvalue;
+
+		if ( curvalue < 0 )
+			curvalue = 0;
+		else if ( curvalue >= s_videoModeCount )
+			curvalue = s_videoModeCount - 1;
+
+		return s_videoModeNumbers[curvalue];
+	}
+
+	return s_video_mode_list.curvalue;
 }
 
 /*
@@ -791,6 +833,16 @@ static void ModeCallback( void *s, int notification )
 			s_video_mode_list.curvalue = 6;
 		}
 	}
+
+	// TiM - the 2..6 clamp above is index arithmetic left over from the old
+	// fixed resolution list; on a short aspect-filtered list (the 5:4
+	// category can hold exactly one entry) it can still land outside the
+	// list that's actually on screen, so re-clamp to whatever is really
+	// there now
+	if ( s_video_mode_list.numitems > 0 && s_video_mode_list.curvalue >= s_video_mode_list.numitems )
+	{
+		s_video_mode_list.curvalue = s_video_mode_list.numitems - 1;
+	}
 }
 
 /*
@@ -803,8 +855,10 @@ static void AspectCallback( void *s, int notification )
 	if ( notification != QM_ACTIVATED )
 		return;
 
-	// rebuild the resolution list for the newly chosen category
-	VideoModes_SelectCurrent( s_video_aspect_list.curvalue, ui.Cvar_VariableValue( "r_mode" ) );
+	// TiM - carry forward the resolution currently showing (which may be an
+	// unapplied pick the player just made) rather than re-reading r_mode,
+	// which would silently discard that pick and revert to the applied value
+	VideoModes_SelectCurrent( s_video_aspect_list.curvalue, VideoModes_CurrentNumber() );
 }
 
 /*
@@ -823,7 +877,20 @@ static void GraphicsOptionsCallback( void *s, int notification )
 
 	s_video_colordepth_list.curvalue = ivo->colordepth;
 	s_video_driver_list.curvalue = ivo->driver;
+
+	// TiM - ivo->mode (0-2) is an index into the old fixed resolution list,
+	// not a real mode number, and the aspect filter can leave the control
+	// showing a list far shorter than that - the 5:4 category can hold
+	// exactly one entry.  Clamp to what's actually on screen so this never
+	// applies a resolution the player never chose; the templates aren't
+	// mapped through mode numbers here as that would need real per-template
+	// resolutions the templates don't carry today.
 	s_video_mode_list.curvalue = ivo->mode;
+	if ( s_video_mode_list.numitems > 0 && s_video_mode_list.curvalue >= s_video_mode_list.numitems )
+	{
+		s_video_mode_list.curvalue = s_video_mode_list.numitems - 1;
+	}
+
 	s_video_fullscreen_list.curvalue = ivo->fullscreen;
 	s_video_texture_quality_list.curvalue = ivo->tq;
 //	s_video_lighting_list.curvalue = ivo->lighting;
@@ -931,7 +998,18 @@ static void ApplyChanges( void *unused, int notification )
 
 	// Video Resolution Setting
 	if ( s_videoModeCount )
+	{
+		// belt-and-braces: curvalue should already be in bounds (numitems is
+		// kept in step with s_videoModeCount by VideoModes_SelectCurrent),
+		// but this is the one place a bad index would reach into r_mode, so
+		// clamp before ever indexing s_videoModeNumbers with it
+		if ( s_video_mode_list.curvalue >= s_videoModeCount )
+			s_video_mode_list.curvalue = s_videoModeCount - 1;
+		else if ( s_video_mode_list.curvalue < 0 )
+			s_video_mode_list.curvalue = 0;
+
 		ui.Cvar_SetValue( "r_mode", s_videoModeNumbers[s_video_mode_list.curvalue] );
+	}
 	else
 		// Adding 2 because we don't show 320x200 and MNT_400X300
 		ui.Cvar_SetValue( "r_mode", (s_video_mode_list.curvalue +2) );
@@ -1109,16 +1187,12 @@ void M_VideoDataMenu_Graphics (void)
 	UI_DrawProportionalString(  74,  206, "250624",UI_RIGHT|UI_TINYFONT, colorTable[CT_BLACK]);
 	UI_DrawProportionalString(  74,  395, "456730-1",UI_RIGHT|UI_TINYFONT, colorTable[CT_BLACK]);
 
-	// ASPECT RATIO has no spare MBT_ enum / text-asset entry (see s_video_aspect_list.textEnum),
-	// so its label is drawn here by hand, matching the position/font/colour of the
-	// enum-drawn spin control labels beside it.  Not localised - unlike those labels,
-	// which have _deutsch/_francais variants, this string is English-only.
-	if ( s_video_aspect_shown )
-	{
-		UI_DrawProportionalString( s_video_aspect_list.generic.x + s_video_aspect_list.textX,
-			s_video_aspect_list.generic.y + s_video_aspect_list.textY,
-			"ASPECT RATIO", UI_LEFT | UI_SMALLFONT, colorTable[s_video_aspect_list.textcolor] );
-	}
+	// TiM - ASPECT RATIO's label used to be drawn right here, but this function
+	// runs before Menu_Draw (see VideoData_MenuDraw), and Menu_Draw's own
+	// SpinControl_Draw repaints the control's button caps and middle bar over
+	// these exact coordinates - so anything drawn here is instantly covered
+	// and never actually visible.  It's now drawn by VideoData_DrawAspectLabel,
+	// called after Menu_Draw instead; see that function.
 
 	UI_Setup_MenuButtons();
 
@@ -1155,6 +1229,38 @@ void M_VideoDataMenu_Graphics (void)
 
 /*
 =================
+VideoData_DrawAspectLabel
+
+ASPECT RATIO has no spare MBT_ enum / text-asset entry (see
+s_video_aspect_list.textEnum), so its label is drawn here by hand rather than
+by the engine's own enum-driven label draw.  It has to run after Menu_Draw,
+not before it: SpinControl_Draw paints the control's button caps and middle
+bar over these exact coordinates, so anything drawn earlier (this used to
+live in M_VideoDataMenu_Graphics, called before Menu_Draw) is immediately
+painted over and never visible.  Colour matches SpinControl_Draw's own
+focus/unfocused split, so this is the only label on the menu that would
+otherwise fail to light up when focused once drawn on top instead of under.
+Not localised - unlike the enum-driven labels, which have _deutsch/_francais
+variants, this string is English-only.
+=================
+*/
+static void VideoData_DrawAspectLabel( void )
+{
+	int color;
+
+	if ( !s_video_aspect_shown )
+		return;
+
+	color = ( Menu_ItemAtCursor( &s_video_menu ) == (void *)&s_video_aspect_list )
+		? s_video_aspect_list.textcolor2 : s_video_aspect_list.textcolor;
+
+	UI_DrawProportionalString( s_video_aspect_list.generic.x + s_video_aspect_list.textX,
+		s_video_aspect_list.generic.y + s_video_aspect_list.textY,
+		"ASPECT RATIO", UI_LEFT | UI_SMALLFONT, colorTable[color] );
+}
+
+/*
+=================
 VideoData_MenuDraw
 =================
 */
@@ -1165,6 +1271,8 @@ static void VideoData_MenuDraw (void)
 	M_VideoDataMenu_Graphics();
 
 	Menu_Draw( &s_video_menu );
+
+	VideoData_DrawAspectLabel();
 }
 
 /*
@@ -1198,6 +1306,20 @@ VideoData_MenuKey
 */
 sfxHandle_t VideoData_MenuKey (int key)
 {
+	// TiM - while APPLY is blinking, this menu intercepts K_ESCAPE itself
+	// (below, to confirm unsaved changes) and returns before Menu_DefaultKey
+	// ever gets to run its own close-the-open-list check - so the Yes/No
+	// confirm menu can pop this one with the list still open on the
+	// persistent static.  Close it here first, ahead of that intercept.
+	// K_MOUSE2 already reaches Menu_DefaultKey unconditionally today (this
+	// menu's own switch below only ever cases K_ESCAPE), but is handled here
+	// too so this guard does not silently stop covering it if that changes.
+	if ( ( key == K_ESCAPE || key == K_MOUSE2 ) && s_video_menu.displaySpinList )
+	{
+		Menu_CloseSpinList( &s_video_menu );
+		return menu_move_sound;
+	}
+
 	if (s_video_apply_action.generic.flags & QMF_BLINK)
 	{
 		switch (key)

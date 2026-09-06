@@ -2988,13 +2988,20 @@ void Menu_Draw( menuframework_s *menu )
 		UI_DrawHandlePic( s->drawList.right - 1, s->drawList.up + 1, 1, boxHeight - 2, uis.whiteShader );
 		UI_DrawHandlePic( s->drawList.left, s->drawList.down - 1, boxWidth, 1, uis.whiteShader );
 
-		selectedNum = SpinControl_ListIndexAtCursor( s );
-
+		// TiM - no row is selected when the cursor sits outside the box; leaving
+		// selectedNum at a real index here would still match a row below and
+		// draw its text CT_BLACK with no highlight backing it, i.e. invisible
 		if ( UI_CursorInRect( s->drawList.left, s->drawList.up, boxWidth, boxHeight ) )
 		{
+			selectedNum = SpinControl_ListIndexAtCursor( s );
+
 			ui.R_SetColor( colorTable[s->color] );
 			UI_DrawHandlePic( s->drawList.left + 1, ( s->drawList.up + 1 ) + SMALLCHAR_HEIGHT * selectedNum,
 							  boxWidth - 2, SMALLCHAR_HEIGHT + 1, uis.whiteShader );
+		}
+		else
+		{
+			selectedNum = -1;
 		}
 
 		for ( i = 0; i < s->numitems; i++ )
@@ -3049,6 +3056,28 @@ void Menu_SetStatusBar( menuframework_s *m, const char *string )
 
 /*
 ===============
+Menu_CloseSpinList
+
+Clears a menu's open spin list, if any.  NULL-safe (a NULL menu is a no-op).
+menuframework_s instances are persistent statics reused across menu
+open/close, so any path that can leave a list open on one needs to be able
+to reach for this - Menu_DefaultKey's own Escape/Mouse2 handling, a menu's
+own key hook that intercepts those keys before Menu_DefaultKey ever sees
+them, cursor-move keys that shift focus off the open control, and
+UI_PushMenu, which uses it to make every one of those self-healing.
+===============
+*/
+void Menu_CloseSpinList( menuframework_s *menu )
+{
+	if ( !menu )
+		return;
+
+	menu->displaySpinList = NULL;
+	menu->noNewSelecting = qfalse;
+}
+
+/*
+===============
 Menu_DefaultKey
 ===============
 */
@@ -3069,8 +3098,7 @@ sfxHandle_t Menu_DefaultKey( menuframework_s *m, int key )
 			// the (now persistent, static) menuframework_s
 			if ( m && m->displaySpinList )
 			{
-				m->displaySpinList = NULL;
-				m->noNewSelecting = qfalse;
+				Menu_CloseSpinList( m );
 				return menu_move_sound;
 			}
 
@@ -3162,6 +3190,9 @@ sfxHandle_t Menu_DefaultKey( menuframework_s *m, int key )
 #endif
 		case K_KP_UPARROW:
 		case K_UPARROW:
+			// TiM - moving focus off the open control's own list would leave
+			// it drawn with the cursor and stale mouse focus somewhere else
+			Menu_CloseSpinList( m );
 			cursor_prev    = m->cursor;
 			m->cursor_prev = m->cursor;
 			m->cursor--;
@@ -3175,6 +3206,7 @@ sfxHandle_t Menu_DefaultKey( menuframework_s *m, int key )
 		case K_TAB:
 		case K_KP_DOWNARROW:
 		case K_DOWNARROW:
+			Menu_CloseSpinList( m );
 			cursor_prev    = m->cursor;
 			m->cursor_prev = m->cursor;
 			m->cursor++;

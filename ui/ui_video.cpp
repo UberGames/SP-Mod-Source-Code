@@ -135,6 +135,7 @@ static menulist_s			s_video_mode_option_list;
 static menulist_s			s_video_driver_list;
 static menulist_s			s_video_extension_enable_list;
 static menulist_s			s_video_aspect_list;
+static qboolean				s_video_aspect_shown = qfalse;	// whether s_video_aspect_list was built into the menu; gates its hard-coded label draw
 static menulist_s			s_video_mode_list;
 static menulist_s			s_video_colordepth_list;
 static menulist_s			s_video_fullscreen_list;
@@ -1109,6 +1110,17 @@ void M_VideoDataMenu_Graphics (void)
 	UI_DrawProportionalString(  74,  206, "250624",UI_RIGHT|UI_TINYFONT, colorTable[CT_BLACK]);
 	UI_DrawProportionalString(  74,  395, "456730-1",UI_RIGHT|UI_TINYFONT, colorTable[CT_BLACK]);
 
+	// ASPECT RATIO has no spare MBT_ enum / text-asset entry (see s_video_aspect_list.textEnum),
+	// so its label is drawn here by hand, matching the position/font/colour of the
+	// enum-drawn spin control labels beside it.  Not localised - unlike those labels,
+	// which have _deutsch/_francais variants, this string is English-only.
+	if ( s_video_aspect_shown )
+	{
+		UI_DrawProportionalString( s_video_aspect_list.generic.x + s_video_aspect_list.textX,
+			s_video_aspect_list.generic.y + s_video_aspect_list.textY,
+			"ASPECT RATIO", UI_LEFT | UI_SMALLFONT, colorTable[s_video_aspect_list.textcolor] );
+	}
+
 	UI_Setup_MenuButtons();
 
 	// Rest of Bottom1_Graphics
@@ -1372,7 +1384,7 @@ static void VideoData_MenuInit( void )
 		s_video_aspect_list.generic.x				= x;
 		s_video_aspect_list.generic.y				= y;
 		s_video_aspect_list.generic.callback		= AspectCallback;
-		s_video_aspect_list.textEnum				= MBT_VIDEOMODE;
+		s_video_aspect_list.textEnum				= MBT_NONE;	// no spare menu-text enum available; label is hand-drawn in M_VideoDataMenu_Graphics
 		s_video_aspect_list.textcolor				= CT_BLACK;
 		s_video_aspect_list.textcolor2				= CT_WHITE;
 		s_video_aspect_list.color					= CT_DKPURPLE1;
@@ -1382,6 +1394,11 @@ static void VideoData_MenuInit( void )
 		s_video_aspect_list.itemnames				= s_videoAspectNames;
 		s_video_aspect_list.listnames				= NULL;
 		s_video_aspect_list.width					= width;
+		s_video_aspect_shown						= qtrue;
+	}
+	else
+	{
+		s_video_aspect_shown						= qfalse;
 	}
 
 	y += inc;

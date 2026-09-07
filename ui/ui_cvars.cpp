@@ -242,7 +242,14 @@ void AnisotropicFilteringCallback( void *s, int notification )
 		return;
 	}
 
-	ui.Cvar_SetValue( "r_ext_texture_filter_anisotropic", anisotropicfiltering->curvalue );
+	// ON means the maximum the hardware offers, which the renderer publishes in
+	// r_ext_texture_filter_anisotropic_avail.  Writing the curvalue itself
+	// would set the level to 1, and the renderer only filters above 1 - so the
+	// control would read ON and do nothing.
+	ui.Cvar_SetValue( "r_ext_texture_filter_anisotropic",
+		anisotropicfiltering->curvalue
+			? ui.Cvar_VariableValue( "r_ext_texture_filter_anisotropic_avail" )
+			: 0 );
 }
 
 /*

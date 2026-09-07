@@ -2055,7 +2055,14 @@ static void	UI_Video2SettingsGetCvars()
 
 	videodata2.cinematic_quality.curvalue = ui.Cvar_VariableValue( "cl_VideoUsingLoRes" );
 
-	videodata2.anisotropicfiltering.curvalue = ui.Cvar_VariableValue( "r_ext_texture_filter_anisotropic" );
+	// r_ext_texture_filter_anisotropic holds the anisotropy level, not a
+	// boolean - the renderer applies filtering when it is > 1 and clamps it to
+	// r_ext_texture_filter_anisotropic_avail - so its raw value (16 on most
+	// hardware) has to be folded down to this two-entry control's OFF/ON
+	// rather than assigned straight to curvalue, which walked off the end of
+	// s_enable_Names and drew a NULL string.
+	videodata2.anisotropicfiltering.curvalue =
+		( ui.Cvar_VariableValue( "r_ext_texture_filter_anisotropic" ) > 1 ) ? 1 : 0;
 
 	s_video2_screensize_slider.curvalue = ui.Cvar_VariableValue( "cg_viewsize" );
 }

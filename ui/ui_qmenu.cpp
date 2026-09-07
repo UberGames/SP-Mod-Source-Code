@@ -2240,6 +2240,14 @@ void SpinControl_Draw( menulist_s *s )
 	x = s->generic.x;
 	y =	s->generic.y;
 
+	// TiM - curvalue is assigned from a cvar in several menus, and a cvar whose
+	// range does not match the control's leaves it pointing past the end of the
+	// name list.  What it lands on is the list's own terminator or worse, and
+	// both resolve to a NULL string that the draws below dereference, so clamp
+	// here rather than fault - this is the last point common to every menu.
+	if ( s->numitems > 0 && ( s->curvalue < 0 || s->curvalue >= s->numitems ) )
+		s->curvalue = 0;
+
 	// Print current value
 	if (s->listnames)
 	{

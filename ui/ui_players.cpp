@@ -656,6 +656,7 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 	vec3_t			maxs = {16, 16, 32};
 	float			len;
 	float			xx;
+	float			fovWidth;
 
 //	if ( !pi->legsModel || !pi->torsoModel || !pi->headModel || !pi->animations[0].numFrames ) {
 //		return;
@@ -673,6 +674,10 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 		pi->pendingWeapon = (weapon_t) -1;
 		pi->weaponTimer = 0;
 	}
+
+	// TiM - keep the field of view for the 640x480 box, before it is scaled to
+	// real pixels below.  See the fov_x line for why.
+	fovWidth = w;
 
 	UI_AdjustFrom640( &x, &y, &w, &h );
 
@@ -692,7 +697,17 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 	refdef.width = w;
 	refdef.height = h;
 
-	refdef.fov_x = (int)((float)refdef.width / 640.0f * 90.0f);
+	// TiM - this is Q3 heritage and derived the fov from refdef.width, which
+	// UI_AdjustFrom640 has just scaled up to real pixels: the fov therefore
+	// grew with the resolution.  At the 640x480 it was written for the scale
+	// is 1 and this box comes out at 34 degrees, but at 5120x2880 it reaches
+	// 273 - past the vertical, so tan() below goes negative, the camera origin
+	// lands behind the model, and the body sits behind the near plane while
+	// only the weapon, offset by its tag, clips into view as a smear.  Use the
+	// unscaled width so the preview looks the same at every resolution.
+	// fov_y still comes off the pixel width and height below, so a non-square
+	// pixel scale does not stretch the model.
+	refdef.fov_x = (int)( fovWidth / 640.0f * 90.0f );
 	xx = refdef.width / tan( refdef.fov_x / 360 * M_PI );
 	refdef.fov_y = atan2( refdef.height, xx );
 	refdef.fov_y *= (float)( 360.0f / M_PI );

@@ -564,6 +564,8 @@ static char			s_videoModeLabels[VIDEO_MODE_MAX][16];
 static const char	*s_videoModeNames[VIDEO_MODE_MAX + 2];
 static int			s_videoModeCount;		// entries in the list, 0 when the engine has no r_modeList
 static int			s_videoModeNumbers[VIDEO_MODE_MAX];	// r_mode value for each visible entry
+static int			s_videoModeWidths[VIDEO_MODE_MAX];	// and its size, for matching across a filter change
+static int			s_videoModeHeights[VIDEO_MODE_MAX];
 
 // aspect categories, in the order they appear in the control
 #define VIDEO_ASPECT_ALL	0
@@ -618,6 +620,8 @@ static int VideoModes_Build( int category, int currentMode )
 		Q_strupr( s_videoModeLabels[n] );		// the menu font is upper case
 		s_videoModeNames[n] = s_videoModeLabels[n];
 		s_videoModeNumbers[n] = mode;
+		s_videoModeWidths[n] = w;
+		s_videoModeHeights[n] = h;
 		n++;
 	}
 	s_videoModeNames[n] = NULL;
@@ -658,6 +662,65 @@ static void VideoModes_SelectCurrent( int category, int mode )
 			break;
 		}
 	}
+}
+
+/*
+The size of the resolution control's current selection.  Like
+VideoModes_CurrentNumber this reads what is on screen, which may be a pick
+the player has not applied yet.
+*/
+static void VideoModes_CurrentSize( int *w, int *h )
+{
+	int curvalue = s_video_mode_list.curvalue;
+
+	*w = *h = 0;
+	if ( !s_videoModeCount )
+		return;
+
+	if ( curvalue < 0 )
+		curvalue = 0;
+	else if ( curvalue >= s_videoModeCount )
+		curvalue = s_videoModeCount - 1;
+
+	*w = s_videoModeWidths[curvalue];
+	*h = s_videoModeHeights[curvalue];
+}
+
+/*
+Rebuild the resolution list for `category` and select whichever entry is
+closest in size to w x h.  Closeness is measured on pixel count, with the
+nearer width breaking a tie, so the picture stays about as big as it was
+instead of snapping to an end of the list.  `mode` is only a fallback: if
+the category turns out to have no modes at all - it cannot with the engine's
+own list, but r_modeList comes from outside - the list is rebuilt the old
+way so the control still has something to show.
+*/
+static void VideoModes_SelectClosest( int category, int mode, int w, int h )
+{
+	int i, best = 0, bestArea = -1, bestWidth = 0;
+
+	if ( !VideoModes_Build( category, -1 ) )
+	{
+		VideoModes_SelectCurrent( category, mode );
+		return;
+	}
+
+	s_video_mode_list.numitems = s_videoModeCount;
+
+	for ( i = 0; i < s_videoModeCount; i++ )
+	{
+		int area = abs( ( s_videoModeWidths[i] * s_videoModeHeights[i] ) - ( w * h ) );
+		int width = abs( s_videoModeWidths[i] - w );
+
+		if ( bestArea < 0 || area < bestArea || ( area == bestArea && width < bestWidth ) )
+		{
+			bestArea = area;
+			bestWidth = width;
+			best = i;
+		}
+	}
+
+	s_video_mode_list.curvalue = best;
 }
 
 /*
@@ -855,10 +918,22 @@ static void AspectCallback( void *s, int notification )
 	if ( notification != QM_ACTIVATED )
 		return;
 
-	// TiM - carry forward the resolution currently showing (which may be an
-	// unapplied pick the player just made) rather than re-reading r_mode,
-	// which would silently discard that pick and revert to the applied value
-	VideoModes_SelectCurrent( s_video_aspect_list.curvalue, VideoModes_CurrentNumber() );
+	// TiM - carry the resolution across the filter change by size rather than
+	// by identity.  Keeping the mode itself meant VideoModes_Build's
+	// keep-current bypass dragged it into the new list whatever its shape, so
+	// choosing 16:9 while sitting on a 4:3 mode left a 4:3 resolution showing
+	// under a 16:9 label - and Apply would have written it.  What the player
+	// cares about is the size on screen, so land on whichever mode in the new
+	// category comes closest to it.  Both reads have to happen before the
+	// rebuild renumbers the list, and both take what is showing now, which may
+	// be a pick that has not been applied yet.
+	{
+		int mode = VideoModes_CurrentNumber();
+		int w, h;
+
+		VideoModes_CurrentSize( &w, &h );
+		VideoModes_SelectClosest( s_video_aspect_list.curvalue, mode, w, h );
+	}
 }
 
 /*

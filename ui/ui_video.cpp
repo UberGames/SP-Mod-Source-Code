@@ -1446,6 +1446,21 @@ static void VideoData_MenuInit( void )
 	x = 170;
 	y = 178;
 	width = 145;
+	inc = 20;
+
+	// The aspect-ratio filter only exists when the engine publishes r_modeList
+	// - the retail fixed list has nothing to filter.  It takes over the video
+	// driver's row rather than adding one, because the panel has no room for
+	// another: with both present the rows below run out the bottom of the
+	// region.  Giving up the driver control costs nothing, since its only
+	// other choice is the 3dfx MiniGL driver and no build that gets this far
+	// can load one - and curvalue is still initialised below, so ApplyChanges
+	// goes on writing r_glDriver for the driver actually in use.
+	if ( VideoModes_Build( VIDEO_ASPECT_ALL, -1 ) )
+		s_video_aspect_shown = qtrue;
+	else
+		s_video_aspect_shown = qfalse;
+
 	s_video_mode_option_list.generic.type			= MTYPE_SPINCONTROL;
 	s_video_mode_option_list.generic.flags			= QMF_HIGHLIGHT_IF_FOCUS;
 	s_video_mode_option_list.generic.x				= x;
@@ -1461,23 +1476,24 @@ static void VideoData_MenuInit( void )
 	s_video_mode_option_list.listnames				= s_graphics_options_Names;
 	s_video_mode_option_list.width					= width;
 
-	inc = 20;
-	y += inc;
-	s_video_driver_list.generic.type				= MTYPE_SPINCONTROL;
-	s_video_driver_list.generic.flags				= QMF_HIGHLIGHT_IF_FOCUS;
-	s_video_driver_list.generic.x					= x;
-	s_video_driver_list.generic.y					= y;
-	s_video_driver_list.textEnum					= MBT_VIDEODRIVER;
-	s_video_driver_list.textcolor					= CT_BLACK;
-	s_video_driver_list.textcolor2					= CT_WHITE;
-	s_video_driver_list.color						= CT_DKPURPLE1;
-	s_video_driver_list.color2						= CT_LTPURPLE1;
-	s_video_driver_list.textX						= 5;
-	s_video_driver_list.textY						= 2;
-	s_video_driver_list.listnames					= s_driver_Names;
-	s_video_driver_list.width						= width;
 	s_video_driver_list.curvalue					= (uis.glconfig.driverType == GLDRV_VOODOO);
-
+	if ( !s_video_aspect_shown )
+	{
+		y += inc;
+		s_video_driver_list.generic.type				= MTYPE_SPINCONTROL;
+		s_video_driver_list.generic.flags				= QMF_HIGHLIGHT_IF_FOCUS;
+		s_video_driver_list.generic.x					= x;
+		s_video_driver_list.generic.y					= y;
+		s_video_driver_list.textEnum					= MBT_VIDEODRIVER;
+		s_video_driver_list.textcolor					= CT_BLACK;
+		s_video_driver_list.textcolor2					= CT_WHITE;
+		s_video_driver_list.color						= CT_DKPURPLE1;
+		s_video_driver_list.color2						= CT_LTPURPLE1;
+		s_video_driver_list.textX						= 5;
+		s_video_driver_list.textY						= 2;
+		s_video_driver_list.listnames					= s_driver_Names;
+		s_video_driver_list.width						= width;
+	}
 
 	y += inc;
 	s_video_extension_enable_list.generic.type		= MTYPE_SPINCONTROL;
@@ -1495,9 +1511,8 @@ static void VideoData_MenuInit( void )
 	s_video_extension_enable_list.listnames			= s_enable_Names;
 	s_video_extension_enable_list.width				= width;
 
-	// filters the resolution list below by aspect ratio; only exists when the
-	// engine publishes r_modeList - the retail fixed list has nothing to filter
-	if ( VideoModes_Build( VIDEO_ASPECT_ALL, -1 ) )
+	// filters the resolution list below by aspect ratio
+	if ( s_video_aspect_shown )
 	{
 		y += inc;
 		s_video_aspect_list.generic.type			= MTYPE_SPINCONTROL;
@@ -1505,7 +1520,7 @@ static void VideoData_MenuInit( void )
 		s_video_aspect_list.generic.x				= x;
 		s_video_aspect_list.generic.y				= y;
 		s_video_aspect_list.generic.callback		= AspectCallback;
-		s_video_aspect_list.textEnum				= MBT_NONE;	// no spare menu-text enum available; label is hand-drawn in M_VideoDataMenu_Graphics
+		s_video_aspect_list.textEnum				= MBT_NONE;	// no spare menu-text enum available; label is hand-drawn in VideoData_DrawAspectLabel
 		s_video_aspect_list.textcolor				= CT_BLACK;
 		s_video_aspect_list.textcolor2				= CT_WHITE;
 		s_video_aspect_list.color					= CT_DKPURPLE1;
@@ -1515,11 +1530,6 @@ static void VideoData_MenuInit( void )
 		s_video_aspect_list.itemnames				= s_videoAspectNames;
 		s_video_aspect_list.listnames				= NULL;
 		s_video_aspect_list.width					= width;
-		s_video_aspect_shown						= qtrue;
-	}
-	else
-	{
-		s_video_aspect_shown						= qfalse;
 	}
 
 	y += inc;
@@ -1714,7 +1724,8 @@ static void VideoData_MenuInit( void )
 	SetupMenu_TopButtons(&s_video_menu,MENU_VIDEODATA,&s_video_apply_action);
 
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_mode_option_list);
-	Menu_AddItem( &s_video_menu, ( void * )&s_video_driver_list);
+	if ( !s_video_aspect_shown )
+		Menu_AddItem( &s_video_menu, ( void * )&s_video_driver_list);
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_extension_enable_list);
 	if ( s_video_aspect_shown )
 		Menu_AddItem( &s_video_menu, ( void * )&s_video_aspect_list);

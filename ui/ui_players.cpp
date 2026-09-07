@@ -657,6 +657,7 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 	float			len;
 	float			xx;
 	float			fovWidth;
+	float			fovHeight;
 
 //	if ( !pi->legsModel || !pi->torsoModel || !pi->headModel || !pi->animations[0].numFrames ) {
 //		return;
@@ -678,6 +679,7 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 	// TiM - keep the field of view for the 640x480 box, before it is scaled to
 	// real pixels below.  See the fov_x line for why.
 	fovWidth = w;
+	fovHeight = h;
 
 	UI_AdjustFrom640( &x, &y, &w, &h );
 
@@ -705,11 +707,17 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 	// lands behind the model, and the body sits behind the near plane while
 	// only the weapon, offset by its tag, clips into view as a smear.  Use the
 	// unscaled width so the preview looks the same at every resolution.
-	// fov_y still comes off the pixel width and height below, so a non-square
-	// pixel scale does not stretch the model.
+	// fov_y comes off the same unscaled box, so the model is framed by the
+	// layout rather than by the pixels: uis.scalex is vidWidth/640 and
+	// uis.scaley is vidHeight/480, which are only equal at 4:3, so measuring
+	// the box in pixels showed less and less of the model vertically as the
+	// display got wider.  Using the 640x480 box shows exactly what retail
+	// showed at every resolution, and stretches the model the same way the
+	// menu art around it is stretched - so if the 2D scale is ever made
+	// uniform, this becomes undistorted along with everything else.
 	refdef.fov_x = (int)( fovWidth / 640.0f * 90.0f );
-	xx = refdef.width / tan( refdef.fov_x / 360 * M_PI );
-	refdef.fov_y = atan2( refdef.height, xx );
+	xx = fovWidth / tan( refdef.fov_x / 360 * M_PI );
+	refdef.fov_y = atan2( fovHeight, xx );
 	refdef.fov_y *= (float)( 360.0f / M_PI );
 
 	// calculate distance so the player nearly fills the box

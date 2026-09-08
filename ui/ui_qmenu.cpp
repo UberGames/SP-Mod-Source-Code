@@ -2236,6 +2236,15 @@ SpinControl_Draw
 void SpinControl_Draw( menulist_s *s )
 {
 	int x,y,listX,buttonColor,buttonTextColor;
+	// TiM - the open list is a black box over a menu of white values, and the
+	// two read as one surface.  Dropping every other value to grey while it is
+	// up separates them: the list keeps the only white text on screen.  Done by
+	// colour rather than by setting QMF_GRAYED, because these menuframework_s
+	// are static and persistent - a flag set here has to be cleared again on
+	// every path that leaves the menu, which is the bug already fixed once in
+	// this file for displaySpinList after a K_MOUSE2.
+	int valueColor = ( s->generic.parent->displaySpinList &&
+					   s->generic.parent->displaySpinList != s ) ? CT_MDGREY : CT_WHITE;
 
 	x = s->generic.x;
 	y =	s->generic.y;
@@ -2254,7 +2263,7 @@ void SpinControl_Draw( menulist_s *s )
 		if ( !strchr( menu_normal_text[s->listnames[s->curvalue]], '\n' ) )
 		{
 			listX = x + MENU_BUTTON_MED_HEIGHT + s->width - 8 + MENU_BUTTON_MED_HEIGHT + 4;
-			UI_DrawProportionalString( listX, y + s->textY,menu_normal_text[s->listnames[s->curvalue]], UI_SMALLFONT, colorTable[CT_WHITE] );
+			UI_DrawProportionalString( listX, y + s->textY,menu_normal_text[s->listnames[s->curvalue]], UI_SMALLFONT, colorTable[valueColor] );
 		}
 	}
 	else if (s->itemnames[0])
@@ -2262,7 +2271,7 @@ void SpinControl_Draw( menulist_s *s )
 		if ( !strchr(s->itemnames[s->curvalue], '\n' ) )
 		{
 			listX = x + MENU_BUTTON_MED_HEIGHT + s->width - 8 + MENU_BUTTON_MED_HEIGHT + 4;
-			UI_DrawProportionalString( listX, y + s->textY,s->itemnames[s->curvalue], UI_SMALLFONT, colorTable[CT_WHITE] );
+			UI_DrawProportionalString( listX, y + s->textY,s->itemnames[s->curvalue], UI_SMALLFONT, colorTable[valueColor] );
 		}
 	}
 

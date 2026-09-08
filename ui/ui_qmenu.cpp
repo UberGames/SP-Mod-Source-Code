@@ -2216,6 +2216,29 @@ SpinControl_Draw
 void SpinControl_Draw( menulist_s *s )
 {
 	int x,y,listX,buttonColor,buttonTextColor;
+	int valueColor = CT_WHITE;
+	// TiM - while another control's list is open this one is not selectable, so
+	// it says so by going quiet.  Done here rather than by setting QMF_GRAYED:
+	// the menuframework_s are static and persistent, and a flag set here has to
+	// be cleared on every path that leaves the menu.  A colour does not.
+	qboolean muted = (qboolean)( s->generic.parent->displaySpinList != NULL &&
+								 s->generic.parent->displaySpinList != s );
+
+	if ( muted )
+	{
+		// A row the open list covers is not dimmed, it is gone.  Testing the
+		// row against the list beats widening the black backing to hide it:
+		// a control draws wider than its own bounds - the value string sits
+		// out past generic.right - so any rectangle sized to hide the pill
+		// leaves the value behind, stranded beside somebody else's list.
+		menulist_s *open = (menulist_s *)s->generic.parent->displaySpinList;
+
+		if ( s->generic.y + MENU_BUTTON_MED_HEIGHT > open->drawList.up &&
+			 s->generic.y < open->drawList.down )
+			return;
+
+		valueColor = CT_DKGREY;
+	}
 
 	x = s->generic.x;
 	y =	s->generic.y;
@@ -2234,7 +2257,7 @@ void SpinControl_Draw( menulist_s *s )
 		if ( !strchr( menu_normal_text[s->listnames[s->curvalue]], '\n' ) )
 		{
 			listX = x + MENU_BUTTON_MED_HEIGHT + s->width - 8 + MENU_BUTTON_MED_HEIGHT + 4;
-			UI_DrawProportionalString( listX, y + s->textY,menu_normal_text[s->listnames[s->curvalue]], UI_SMALLFONT, colorTable[CT_WHITE] );
+			UI_DrawProportionalString( listX, y + s->textY,menu_normal_text[s->listnames[s->curvalue]], UI_SMALLFONT, colorTable[valueColor] );
 		}
 	}
 	else if (s->itemnames[0])
@@ -2242,7 +2265,7 @@ void SpinControl_Draw( menulist_s *s )
 		if ( !strchr(s->itemnames[s->curvalue], '\n' ) )
 		{
 			listX = x + MENU_BUTTON_MED_HEIGHT + s->width - 8 + MENU_BUTTON_MED_HEIGHT + 4;
-			UI_DrawProportionalString( listX, y + s->textY,s->itemnames[s->curvalue], UI_SMALLFONT, colorTable[CT_WHITE] );
+			UI_DrawProportionalString( listX, y + s->textY,s->itemnames[s->curvalue], UI_SMALLFONT, colorTable[valueColor] );
 		}
 	}
 
@@ -2275,6 +2298,12 @@ void SpinControl_Draw( menulist_s *s )
 //		ui.R_SetColor( colorTable[CT_LTGOLD1]);
 //		UI_DrawHandlePic(x - 10,y + 6, 8, 8, uis.graphicCircle);
 //	}
+
+	if ( muted )
+	{
+		buttonColor = CT_DKGREY;
+		buttonTextColor = CT_MDGREY;
+	}
 
 	// TiM - while this control's own list is open the row becomes its header:
 	// inverted, so it reads as the thing the list belongs to rather than as
@@ -2988,22 +3017,6 @@ void Menu_Draw( menuframework_s *menu )
 		menulist_s	*s = (menulist_s *)menu->displaySpinList;
 		int			itemWidth = ( s->drawList.right - s->drawList.left ) - MENU_BUTTON_MED_HEIGHT * 2 + 16;
 		int			hovered, i;
-
-		// Everything the list is not gets muted rather than disabled.  These
-		// menuframework_s are static and persistent, so a flag set here would
-		// have to be cleared again on every path that leaves the menu; a
-		// colour laid over the top has nothing to unwind.
-		for ( i = 0; i < menu->nitems; i++ )
-		{
-			menucommon_s *dim = (menucommon_s *)menu->items[i];
-
-			if ( dim == (menucommon_s *)s || ( dim->flags & QMF_INACTIVE ) )
-				continue;
-
-			ui.R_SetColor( colorTable[CT_BLACK] );
-			UI_DrawHandlePic( dim->left, dim->top, dim->right - dim->left,
-							  dim->bottom - dim->top, uis.whiteShader );
-		}
 
 		// an opaque backing, so the rows this covers are simply not there
 		ui.R_SetColor( colorTable[CT_BLACK] );

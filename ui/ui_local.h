@@ -1544,6 +1544,13 @@ typedef enum{
 
 extern char *menu_button_text[MBT_MAX][2];
 #define MENU_BUTTON_MED_HEIGHT	18
+
+// The open spin list: a row is a button pill with two pixels of black under it,
+// the bracket is the vertical rule down the left of the block, and the gutter
+// is the break between the two.
+#define SPINLIST_ROW_PITCH		(MENU_BUTTON_MED_HEIGHT + 2)
+#define SPINLIST_BRACKET_W		4
+#define SPINLIST_GUTTER			2
 #define MENU_BUTTON_MED_WIDTH	130
 #define MENU_TITLE_X			611
 #define MENU_TITLE_Y			24

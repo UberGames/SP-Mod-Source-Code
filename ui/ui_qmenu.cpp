@@ -2048,7 +2048,7 @@ so the two stay in sync.
 */
 static int SpinControl_ListIndexAtCursor( menulist_s *s )
 {
-	int index = ( uis.cursory - s->drawList.up + 1 ) / SMALLCHAR_HEIGHT;
+	int index = ( uis.cursory - s->drawList.up ) / SPINLIST_ROW_PITCH;
 
 	if ( index < 0 )
 		index = 0;
@@ -2068,10 +2068,6 @@ already open - selects whatever the cursor is over.  Adapted from RPG-X2.
 */
 static sfxHandle_t SpinControl_InitListRender( menulist_s *s )
 {
-	int		bestWidth = 0;
-	int		widthOffset, heightOffset;
-	int		i;
-
 	if ( !s->generic.parent->displaySpinList )
 	{
 		if ( !(s->generic.flags & QMF_HASMOUSEFOCUS) )
@@ -2079,60 +2075,27 @@ static sfxHandle_t SpinControl_InitListRender( menulist_s *s )
 
 		memset( &s->drawList, 0, sizeof( drawList_t ) );
 
-		for ( i = 0; i < s->numitems; i++ )
-		{
-			const char *text = s->listnames ? menu_normal_text[s->listnames[i]] : s->itemnames[i];
-			int width = UI_ProportionalStringWidth( text, UI_SMALLFONT );
-			if ( width > bestWidth )
-				bestWidth = width;
-		}
+		// The rows line up under the control that opened them, indented by the
+		// bracket and its gutter so the bracket has somewhere to sit and the
+		// right edges still agree with the header above.
+		s->drawList.left  = s->generic.x + SPINLIST_BRACKET_W + SPINLIST_GUTTER;
+		s->drawList.right = s->generic.x + s->width + MENU_BUTTON_MED_HEIGHT * 2 - 16;
 
-		if ( !s->listX && !s->listY )
-		{
-			widthOffset = s->width ? s->width : MENU_BUTTON_MED_WIDTH;
-			widthOffset = MENU_BUTTON_MED_HEIGHT + widthOffset - 8 + MENU_BUTTON_MED_HEIGHT + 2;
-			heightOffset = s->textY;
-		}
+		// Down from the row by default; up from it when the block would run off
+		// the bottom, which keeps the row you clicked where your eye already is
+		// rather than moving the whole control.
+		if ( s->generic.y + SPINLIST_ROW_PITCH * ( s->numitems + 1 ) < SCREEN_HEIGHT - 40 )
+			s->drawList.up = s->generic.y + SPINLIST_ROW_PITCH;
 		else
-		{
-			widthOffset = s->listX;
-			heightOffset = s->listY;
-		}
+			s->drawList.up = s->generic.y - SPINLIST_ROW_PITCH * s->numitems;
 
-		s->drawList.left  = s->generic.x + widthOffset - 2;
-		s->drawList.up    = s->generic.y + heightOffset - 2;
-		s->drawList.right = s->drawList.left + bestWidth + 4;
-		s->drawList.down  = s->drawList.up + ( SMALLCHAR_HEIGHT * s->numitems ) + 3;
+		s->drawList.down = s->drawList.up + SPINLIST_ROW_PITCH * s->numitems;
 
-		// sit the list a third of its height higher than the control
-		heightOffset = (int)( (float)( s->drawList.down - s->drawList.up ) * 0.33f );
-		s->drawList.up -= heightOffset;
-		s->drawList.down -= heightOffset;
-
-		// and keep it on the screen
-		if ( s->drawList.right > SCREEN_WIDTH )
-		{
-			s->drawList.xOffset = s->drawList.right - SCREEN_WIDTH + 6;
-			s->drawList.left -= s->drawList.xOffset;
-			s->drawList.right -= s->drawList.xOffset;
-		}
-		if ( s->drawList.down > SCREEN_HEIGHT )
-		{
-			s->drawList.yOffset = s->drawList.down - SCREEN_HEIGHT + 6;
-			s->drawList.up -= s->drawList.yOffset;
-			s->drawList.down -= s->drawList.yOffset;
-		}
 		if ( s->drawList.up < 0 )
 		{
 			s->drawList.yOffset = -s->drawList.up;
 			s->drawList.up += s->drawList.yOffset;
 			s->drawList.down += s->drawList.yOffset;
-		}
-		if ( s->drawList.left < 0 )
-		{
-			s->drawList.xOffset = -s->drawList.left;
-			s->drawList.left += s->drawList.xOffset;
-			s->drawList.right += s->drawList.xOffset;
 		}
 
 		s->generic.parent->displaySpinList = s;
@@ -2230,6 +2193,23 @@ static sfxHandle_t SpinControl_Key( menulist_s *s, int key )
 
 /*
 ===============
+UI_DrawMenuPill
+
+The menu's button shape: a rounded cap either end of a stretched bar, which is
+how every LCARS button in here is built.  `width` is the bar, so the pill runs
+from x to x + width + 2 * MENU_BUTTON_MED_HEIGHT - 16.
+===============
+*/
+void UI_DrawMenuPill( int x, int y, int width, int color )
+{
+	ui.R_SetColor( colorTable[color] );
+	UI_DrawHandlePic( x, y, MENU_BUTTON_MED_HEIGHT, MENU_BUTTON_MED_HEIGHT, uis.graphicButtonLeftEnd );
+	UI_DrawHandlePic( x + width + MENU_BUTTON_MED_HEIGHT - 16, y, -MENU_BUTTON_MED_HEIGHT, MENU_BUTTON_MED_HEIGHT, uis.graphicButtonLeftEnd );
+	UI_DrawHandlePic( x + MENU_BUTTON_MED_HEIGHT - 8, y, width, MENU_BUTTON_MED_HEIGHT, uis.whiteShader );
+}
+
+/*
+===============
 SpinControl_Draw
 ===============
 */
@@ -2296,11 +2276,23 @@ void SpinControl_Draw( menulist_s *s )
 //		UI_DrawHandlePic(x - 10,y + 6, 8, 8, uis.graphicCircle);
 //	}
 
+	// TiM - while this control's own list is open the row becomes its header:
+	// inverted, so it reads as the thing the list belongs to rather than as
+	// one more option among the rows below it
+	if ( s->generic.parent->displaySpinList == s )
+	{
+		buttonColor = CT_VLTPURPLE1;
+		buttonTextColor = CT_BLACK;
+	}
+
 	// Draw button and button text
-	ui.R_SetColor( colorTable[buttonColor]);
-	UI_DrawHandlePic(x,y, MENU_BUTTON_MED_HEIGHT, MENU_BUTTON_MED_HEIGHT, uis.graphicButtonLeftEnd);											// Left
-	UI_DrawHandlePic(x+ s->width+ MENU_BUTTON_MED_HEIGHT - 16, y, -MENU_BUTTON_MED_HEIGHT, MENU_BUTTON_MED_HEIGHT, uis.graphicButtonLeftEnd);	// Right
-	UI_DrawHandlePic(x + MENU_BUTTON_MED_HEIGHT - 8,y, s->width, MENU_BUTTON_MED_HEIGHT, uis.whiteShader);										// Middle
+	UI_DrawMenuPill( x, y, s->width, buttonColor );
+
+	if ( s->generic.parent->displaySpinList == s )
+	{
+		UI_DrawProportionalString( x + s->width + MENU_BUTTON_MED_HEIGHT - 20, y + s->textY,
+								   "SELECT", UI_RIGHT|UI_TINYFONT, colorTable[CT_BLACK] );
+	}
 
 	// TiM - MBT_NONE is the "no label" enum, and its text is never filled
 	// in: UI_ParseButtonText starts at 1 because "Zero is null string", so
@@ -2994,41 +2986,58 @@ void Menu_Draw( menuframework_s *menu )
 	if ( menu->displaySpinList )
 	{
 		menulist_s	*s = (menulist_s *)menu->displaySpinList;
-		int			boxWidth = s->drawList.right - s->drawList.left;
-		int			boxHeight = s->drawList.down - s->drawList.up;
-		int			selectedNum, i;
+		int			itemWidth = ( s->drawList.right - s->drawList.left ) - MENU_BUTTON_MED_HEIGHT * 2 + 16;
+		int			hovered, i;
 
+		// Everything the list is not gets muted rather than disabled.  These
+		// menuframework_s are static and persistent, so a flag set here would
+		// have to be cleared again on every path that leaves the menu; a
+		// colour laid over the top has nothing to unwind.
+		for ( i = 0; i < menu->nitems; i++ )
+		{
+			menucommon_s *dim = (menucommon_s *)menu->items[i];
+
+			if ( dim == (menucommon_s *)s || ( dim->flags & QMF_INACTIVE ) )
+				continue;
+
+			ui.R_SetColor( colorTable[CT_BLACK] );
+			UI_DrawHandlePic( dim->left, dim->top, dim->right - dim->left,
+							  dim->bottom - dim->top, uis.whiteShader );
+		}
+
+		// an opaque backing, so the rows this covers are simply not there
 		ui.R_SetColor( colorTable[CT_BLACK] );
-		UI_DrawHandlePic( s->drawList.left, s->drawList.up, boxWidth, boxHeight, uis.whiteShader );
+		UI_DrawHandlePic( s->generic.x, s->drawList.up, s->drawList.right - s->generic.x,
+						  s->drawList.down - s->drawList.up, uis.whiteShader );
 
+		// the bracket down the left, one gutter clear of the rows
 		ui.R_SetColor( colorTable[s->color2] );
-		UI_DrawHandlePic( s->drawList.left, s->drawList.up + 1, 1, boxHeight - 2, uis.whiteShader );
-		UI_DrawHandlePic( s->drawList.left, s->drawList.up, boxWidth, 1, uis.whiteShader );
-		UI_DrawHandlePic( s->drawList.right - 1, s->drawList.up + 1, 1, boxHeight - 2, uis.whiteShader );
-		UI_DrawHandlePic( s->drawList.left, s->drawList.down - 1, boxWidth, 1, uis.whiteShader );
+		UI_DrawHandlePic( s->generic.x, s->drawList.up + 1, SPINLIST_BRACKET_W,
+						  ( s->drawList.down - s->drawList.up ) - 4, uis.whiteShader );
 
-		// TiM - no row is selected when the cursor sits outside the box; leaving
-		// selectedNum at a real index here would still match a row below and
-		// draw its text CT_BLACK with no highlight backing it, i.e. invisible
-		if ( UI_CursorInRect( s->drawList.left, s->drawList.up, boxWidth, boxHeight ) )
-		{
-			selectedNum = SpinControl_ListIndexAtCursor( s );
-
-			ui.R_SetColor( colorTable[s->color] );
-			UI_DrawHandlePic( s->drawList.left + 1, ( s->drawList.up + 1 ) + SMALLCHAR_HEIGHT * selectedNum,
-							  boxWidth - 2, SMALLCHAR_HEIGHT + 1, uis.whiteShader );
-		}
-		else
-		{
-			selectedNum = -1;
-		}
+		hovered = UI_CursorInRect( s->drawList.left, s->drawList.up,
+								   s->drawList.right - s->drawList.left,
+								   s->drawList.down - s->drawList.up )
+				  ? SpinControl_ListIndexAtCursor( s ) : -1;
 
 		for ( i = 0; i < s->numitems; i++ )
 		{
-			const char *text = s->listnames ? menu_normal_text[s->listnames[i]] : s->itemnames[i];
-			UI_DrawProportionalString( s->drawList.left + 2, ( s->drawList.up + 2 ) + SMALLCHAR_HEIGHT * i,
-									   text, UI_SMALLFONT,
-									   colorTable[ i == selectedNum ? CT_BLACK : CT_WHITE ] );
+			const char	*text = s->listnames ? menu_normal_text[s->listnames[i]] : s->itemnames[i];
+			int			rowY = s->drawList.up + SPINLIST_ROW_PITCH * i;
+			int			rowColor;
+
+			// the value the control currently holds keeps the gold, so the
+			// list says what is set as well as what is under the cursor
+			if ( i == s->curvalue )
+				rowColor = CT_LTGOLD1;
+			else if ( i == hovered )
+				rowColor = s->color2;
+			else
+				rowColor = s->color;
+
+			UI_DrawMenuPill( s->drawList.left, rowY, itemWidth, rowColor );
+			UI_DrawProportionalString( s->drawList.left + MENU_BUTTON_MED_HEIGHT - 4, rowY + s->textY,
+									   text, UI_SMALLFONT, colorTable[CT_BLACK] );
 		}
 		ui.R_SetColor( NULL );
 	}

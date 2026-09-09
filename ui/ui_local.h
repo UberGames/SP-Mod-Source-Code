@@ -1549,8 +1549,17 @@ extern char *menu_button_text[MBT_MAX][2];
 // the bracket is the vertical rule down the left of the block, and the gutter
 // is the break between the two.
 #define SPINLIST_ROW_PITCH		(MENU_BUTTON_MED_HEIGHT + 2)
-#define SPINLIST_BRACKET_W		4
+#define SPINLIST_PIPE_W			4	// the vertical run down the left of the rows
+#define SPINLIST_FOOT_H			4	// the horizontal bar closing it off underneath
 #define SPINLIST_GUTTER			2
+// These corner textures draw their ink into part of the canvas and leave the
+// rest transparent, so a rect the size of the ink you want yields something
+// smaller.  Scale the rect by the inverse and the ink lands where it was asked
+// for.  corner_lr_4_18 is 7 of 8 across and 20 of 32 down; corner_ll_4_4 is
+// 6 of 8 both ways.
+#define SPINLIST_ELBOW18_XPAD	(8.0f / 7.0f)
+#define SPINLIST_ELBOW18_YPAD	(32.0f / 20.0f)
+#define SPINLIST_ELBOW4_PAD		(8.0f / 6.0f)
 #define MENU_BUTTON_MED_WIDTH	130
 #define MENU_TITLE_X			611
 #define MENU_TITLE_Y			24
@@ -1896,6 +1905,8 @@ extern void		Menu_SetStatusBar( menuframework_s *s, const char *string );
 extern void		Menu_SlideItem( menuframework_s *s, int dir );
 extern void		Menu_SetCursor( menuframework_s *s, int cursor );
 extern void		Menu_CloseSpinList( menuframework_s *menu );
+extern void		UI_DrawMenuPill( int x, int y, int width, int color,
+								 qboolean leftCap, qboolean rightCap );
 sfxHandle_t		Menu_DefaultKey( menuframework_s *s, int key );
 extern void Mouse_Show(void);
 extern void Mouse_Hide(void);
@@ -2059,6 +2070,8 @@ typedef struct {
 	// Common Menu Graphics
 	qhandle_t			smallNumbers[10];
 	qhandle_t			graphicButtonLeftEnd;			// Rounded left button end
+	qhandle_t			graphicElbow18to4;				// Spin list: header height down to pipe width
+	qhandle_t			graphicElbow4to4;				// Spin list: pipe width round to foot height
 	qhandle_t			graphicCircle;					// Solid circle
 	qhandle_t			graphicCircle2;
 	qhandle_t			graphicEmptyCircle2;

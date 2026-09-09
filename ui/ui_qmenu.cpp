@@ -2078,16 +2078,19 @@ static sfxHandle_t SpinControl_InitListRender( menulist_s *s )
 		// The rows line up under the control that opened them, indented by the
 		// bracket and its gutter so the bracket has somewhere to sit and the
 		// right edges still agree with the header above.
-		s->drawList.left  = s->generic.x + SPINLIST_BRACKET_W + SPINLIST_GUTTER;
-		s->drawList.right = s->generic.x + s->width + MENU_BUTTON_MED_HEIGHT * 2 - 16;
+		// The pipe drops from the header's right end and the rows sit beyond it,
+		// so the list reads as hanging off the control rather than replacing it.
+		// Line the rows up with the value column - the same x SpinControl_Draw
+		// puts each control's current value at - so the list reads as a column
+		// of answers in the place the answer already was.
+		s->drawList.left  = s->generic.x + MENU_BUTTON_MED_HEIGHT + s->width - 8
+							+ MENU_BUTTON_MED_HEIGHT + 4;
+		s->drawList.right = s->drawList.left + s->width + MENU_BUTTON_MED_HEIGHT * 2 - 16;
 
 		// Down from the row by default; up from it when the block would run off
 		// the bottom, which keeps the row you clicked where your eye already is
 		// rather than moving the whole control.
-		if ( s->generic.y + SPINLIST_ROW_PITCH * ( s->numitems + 1 ) < SCREEN_HEIGHT - 40 )
-			s->drawList.up = s->generic.y + SPINLIST_ROW_PITCH;
-		else
-			s->drawList.up = s->generic.y - SPINLIST_ROW_PITCH * s->numitems;
+		s->drawList.up = s->generic.y + SPINLIST_ROW_PITCH;
 
 		s->drawList.down = s->drawList.up + SPINLIST_ROW_PITCH * s->numitems;
 
@@ -2138,7 +2141,10 @@ static sfxHandle_t SpinControl_Key( menulist_s *s, int key )
 
 		case K_ENTER:
 		case K_KP_ENTER:
-			if ( ui.Cvar_VariableValue( "ui_spinLists" ) && !s->ignoreList && s->numitems > 1 && (s->generic.flags & QMF_HASMOUSEFOCUS) )
+			// A list of two is a list nobody needs: On/Off and its like cost a
+			// second click and a bracket to say what one click already said, so
+			// they keep the original behaviour and toggle in place.
+			if ( ui.Cvar_VariableValue( "ui_spinLists" ) && !s->ignoreList && s->numitems > 2 && (s->generic.flags & QMF_HASMOUSEFOCUS) )
 			{
 				sound = SpinControl_InitListRender( s );
 				// this call may only have opened the list, in which case
@@ -2200,12 +2206,23 @@ how every LCARS button in here is built.  `width` is the bar, so the pill runs
 from x to x + width + 2 * MENU_BUTTON_MED_HEIGHT - 16.
 ===============
 */
-void UI_DrawMenuPill( int x, int y, int width, int color )
+void UI_DrawMenuPill( int x, int y, int width, int color, qboolean leftCap, qboolean rightCap )
 {
+	// The pill spans x to x + width + 2 * MENU_BUTTON_MED_HEIGHT - 16 whichever
+	// ends it has; dropping a cap grows the bar into the space it left, so the
+	// side goes flat without the shape changing size.  A flat side is how a pill
+	// butts onto something else - the header into its elbow, a row against the
+	// bracket - instead of the two reading as separate objects.
+	int barX = leftCap ? x + MENU_BUTTON_MED_HEIGHT - 8 : x;
+	int barEnd = rightCap ? x + width + MENU_BUTTON_MED_HEIGHT - 8
+						  : x + width + MENU_BUTTON_MED_HEIGHT * 2 - 16;
+
 	ui.R_SetColor( colorTable[color] );
-	UI_DrawHandlePic( x, y, MENU_BUTTON_MED_HEIGHT, MENU_BUTTON_MED_HEIGHT, uis.graphicButtonLeftEnd );
-	UI_DrawHandlePic( x + width + MENU_BUTTON_MED_HEIGHT - 16, y, -MENU_BUTTON_MED_HEIGHT, MENU_BUTTON_MED_HEIGHT, uis.graphicButtonLeftEnd );
-	UI_DrawHandlePic( x + MENU_BUTTON_MED_HEIGHT - 8, y, width, MENU_BUTTON_MED_HEIGHT, uis.whiteShader );
+	if ( leftCap )
+		UI_DrawHandlePic( x, y, MENU_BUTTON_MED_HEIGHT, MENU_BUTTON_MED_HEIGHT, uis.graphicButtonLeftEnd );
+	if ( rightCap )
+		UI_DrawHandlePic( x + width + MENU_BUTTON_MED_HEIGHT - 16, y, -MENU_BUTTON_MED_HEIGHT, MENU_BUTTON_MED_HEIGHT, uis.graphicButtonLeftEnd );
+	UI_DrawHandlePic( barX, y, barEnd - barX, MENU_BUTTON_MED_HEIGHT, uis.whiteShader );
 }
 
 /*
@@ -2217,28 +2234,19 @@ void SpinControl_Draw( menulist_s *s )
 {
 	int x,y,listX,buttonColor,buttonTextColor;
 	int valueColor = CT_WHITE;
-	// TiM - while another control's list is open this one is not selectable, so
-	// it says so by going quiet.  Done here rather than by setting QMF_GRAYED:
-	// the menuframework_s are static and persistent, and a flag set here has to
-	// be cleared on every path that leaves the menu.  A colour does not.
+	// TiM - while another control's list is open this one cannot be used, so it
+	// says so by going quiet: the pill and its value both drop back, leaving the
+	// list the only lit thing in the panel.  Nothing is hidden - every row stays
+	// legible underneath.  Done here rather than by setting QMF_GRAYED, because
+	// these menuframework_s are static and persistent: a flag set here has to be
+	// cleared again on every path that leaves the menu, which is the bug already
+	// fixed once in this file for displaySpinList after a K_MOUSE2.  A colour
+	// has nothing to unwind.
 	qboolean muted = (qboolean)( s->generic.parent->displaySpinList != NULL &&
 								 s->generic.parent->displaySpinList != s );
 
 	if ( muted )
-	{
-		// A row the open list covers is not dimmed, it is gone.  Testing the
-		// row against the list beats widening the black backing to hide it:
-		// a control draws wider than its own bounds - the value string sits
-		// out past generic.right - so any rectangle sized to hide the pill
-		// leaves the value behind, stranded beside somebody else's list.
-		menulist_s *open = (menulist_s *)s->generic.parent->displaySpinList;
-
-		if ( s->generic.y + MENU_BUTTON_MED_HEIGHT > open->drawList.up &&
-			 s->generic.y < open->drawList.down )
-			return;
-
 		valueColor = CT_DKGREY;
-	}
 
 	x = s->generic.x;
 	y =	s->generic.y;
@@ -2301,8 +2309,11 @@ void SpinControl_Draw( menulist_s *s )
 
 	if ( muted )
 	{
+		// the look a spin control already has when QMF_GRAYED puts it out of
+		// reach - COLOR DEPTH wears it whenever the mode makes it irrelevant -
+		// so a disabled control looks disabled for one reason, not two
 		buttonColor = CT_DKGREY;
-		buttonTextColor = CT_MDGREY;
+		buttonTextColor = s->textcolor;
 	}
 
 	// TiM - while this control's own list is open the row becomes its header:
@@ -2315,13 +2326,9 @@ void SpinControl_Draw( menulist_s *s )
 	}
 
 	// Draw button and button text
-	UI_DrawMenuPill( x, y, s->width, buttonColor );
+	UI_DrawMenuPill( x, y, s->width, buttonColor, qtrue,
+					 (qboolean)( s->generic.parent->displaySpinList != s ) );
 
-	if ( s->generic.parent->displaySpinList == s )
-	{
-		UI_DrawProportionalString( x + s->width + MENU_BUTTON_MED_HEIGHT - 20, y + s->textY,
-								   "SELECT", UI_RIGHT|UI_TINYFONT, colorTable[CT_BLACK] );
-	}
 
 	// TiM - MBT_NONE is the "no label" enum, and its text is never filled
 	// in: UI_ParseButtonText starts at 1 because "Zero is null string", so
@@ -3015,18 +3022,55 @@ void Menu_Draw( menuframework_s *menu )
 	if ( menu->displaySpinList )
 	{
 		menulist_s	*s = (menulist_s *)menu->displaySpinList;
-		int			itemWidth = ( s->drawList.right - s->drawList.left ) - MENU_BUTTON_MED_HEIGHT * 2 + 16;
+		int			itemWidth = s->width;
+		// The pipe sits one gutter clear of the rows - the same gutter that
+		// separates one row from the next - so the bracket keeps even spacing
+		// on both axes.  The header ends further left than that, so the elbow
+		// spans the difference rather than the pipe hanging off on its own.
+		int			headerRight = s->generic.x + s->width + MENU_BUTTON_MED_HEIGHT * 2 - 16;
+		int			pipeX = s->drawList.left - SPINLIST_PIPE_W - SPINLIST_GUTTER;
+		int			pipeTop = s->generic.y + MENU_BUTTON_MED_HEIGHT;
+		int			footY = s->drawList.down;
 		int			hovered, i;
 
-		// an opaque backing, so the rows this covers are simply not there
+		// The rows behind the list keep their place and stay readable - they
+		// have gone grey in their own draw - but the list itself needs ground
+		// of its own, or the artwork it lands on reads straight through it.
 		ui.R_SetColor( colorTable[CT_BLACK] );
-		UI_DrawHandlePic( s->generic.x, s->drawList.up, s->drawList.right - s->generic.x,
-						  s->drawList.down - s->drawList.up, uis.whiteShader );
+		UI_DrawHandlePic( headerRight, s->generic.y, s->drawList.right - headerRight,
+						  ( footY + SPINLIST_FOOT_H ) - s->generic.y, uis.whiteShader );
 
-		// the bracket down the left, one gutter clear of the rows
+		// What marks the list out is the bracket - the header turns down into a
+		// pipe beside the rows and closes under them - so the connection to the
+		// control is drawn rather than implied.
 		ui.R_SetColor( colorTable[s->color2] );
-		UI_DrawHandlePic( s->generic.x, s->drawList.up + 1, SPINLIST_BRACKET_W,
-						  ( s->drawList.down - s->drawList.up ) - 4, uis.whiteShader );
+
+		// The header's 18 turning into the pipe's 8.  A negative width flips the
+		// texture and nothing else - UI_DrawHandlePic still draws rightward from
+		// x - so this is anchored at the pipe, not one pipe-width past it.
+		// Turned through 180 degrees - negative on both axes flips the texture
+		// each way.  The ink sits in the top left of its canvas, so flipping
+		// moves it to the far corner of the padded rect: pull the origin back by
+		// the padding on each axis and it lands where it was asked for.
+		{
+			int		inkW = ( pipeX + SPINLIST_PIPE_W ) - headerRight;
+			float	elbowW = inkW * SPINLIST_ELBOW18_XPAD;
+			float	elbowH = MENU_BUTTON_MED_HEIGHT * SPINLIST_ELBOW18_YPAD;
+
+			UI_DrawHandlePic( headerRight - ( elbowW - inkW ),
+							  s->generic.y - ( elbowH - MENU_BUTTON_MED_HEIGHT ),
+							  -elbowW, -elbowH, uis.graphicElbow18to4 );
+		}
+
+		// the pipe itself, down to where the foot turns out
+		UI_DrawHandlePic( pipeX, pipeTop, SPINLIST_PIPE_W, footY - pipeTop, uis.whiteShader );
+
+		// the pipe's 8 turning into the foot's 4, and the foot running under the rows
+		UI_DrawHandlePic( pipeX, footY, SPINLIST_PIPE_W * SPINLIST_ELBOW4_PAD,
+						  SPINLIST_FOOT_H * SPINLIST_ELBOW4_PAD, uis.graphicElbow4to4 );
+		UI_DrawHandlePic( pipeX + SPINLIST_PIPE_W, footY,
+						  s->drawList.right - ( pipeX + SPINLIST_PIPE_W ), SPINLIST_FOOT_H,
+						  uis.whiteShader );
 
 		hovered = UI_CursorInRect( s->drawList.left, s->drawList.up,
 								   s->drawList.right - s->drawList.left,
@@ -3048,8 +3092,8 @@ void Menu_Draw( menuframework_s *menu )
 			else
 				rowColor = s->color;
 
-			UI_DrawMenuPill( s->drawList.left, rowY, itemWidth, rowColor );
-			UI_DrawProportionalString( s->drawList.left + MENU_BUTTON_MED_HEIGHT - 4, rowY + s->textY,
+			UI_DrawMenuPill( s->drawList.left, rowY, itemWidth, rowColor, qfalse, qtrue );
+			UI_DrawProportionalString( s->drawList.left + MENU_BUTTON_TEXT_X, rowY + s->textY,
 									   text, UI_SMALLFONT, colorTable[CT_BLACK] );
 		}
 		ui.R_SetColor( NULL );
@@ -3348,6 +3392,11 @@ void Menu_Cache( void )
 	uis.graphicCircle2 = ui.R_RegisterShaderNoMip("menu/objectives/circle.tga");
 	uis.graphicEmptyCircle2 = ui.R_RegisterShaderNoMip("menu/objectives/circle_out.tga");
 	uis.graphicButtonLeftEnd = ui.R_RegisterShaderNoMip("menu/common/barbuttonleft.tga");
+	// The spin list's bracket.  corner_ul_8_18 turns the 18-tall header into the
+	// 8-wide pipe and is drawn mirrored, since only the upper-left of that pair
+	// was ever made; corner_ll_4_8 turns the pipe into the 4-tall foot.
+	uis.graphicElbow18to4 = ui.R_RegisterShaderNoMip("menu/common/corner_lr_4_18.tga");
+	uis.graphicElbow4to4 = ui.R_RegisterShaderNoMip("menu/common/corner_ll_4_4.tga");
 
 	uis.graphicBracket1CornerLU =  ui.R_RegisterShaderNoMip("menu/common/corner_lu.tga");
 

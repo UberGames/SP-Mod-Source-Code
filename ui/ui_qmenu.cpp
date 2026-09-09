@@ -2080,11 +2080,12 @@ static sfxHandle_t SpinControl_InitListRender( menulist_s *s )
 		// right edges still agree with the header above.
 		// The pipe drops from the header's right end and the rows sit beyond it,
 		// so the list reads as hanging off the control rather than replacing it.
-		// Line the rows up with the value column - the same x SpinControl_Draw
-		// puts each control's current value at - so the list reads as a column
-		// of answers in the place the answer already was.
+		// The pipe stands where the values were - the same x SpinControl_Draw
+		// puts each control's current value at - and the choices sit one gutter
+		// beyond it, so the bracket reads as the thing the answers hang off.
 		s->drawList.left  = s->generic.x + MENU_BUTTON_MED_HEIGHT + s->width - 8
-							+ MENU_BUTTON_MED_HEIGHT + 4;
+							+ MENU_BUTTON_MED_HEIGHT + 4
+							+ SPINLIST_PIPE_W + SPINLIST_GUTTER;
 		s->drawList.right = s->drawList.left + s->width + MENU_BUTTON_MED_HEIGHT * 2 - 16;
 
 		// Down from the row by default; up from it when the block would run off
@@ -3029,6 +3030,7 @@ void Menu_Draw( menuframework_s *menu )
 		// spans the difference rather than the pipe hanging off on its own.
 		int			headerRight = s->generic.x + s->width + MENU_BUTTON_MED_HEIGHT * 2 - 16;
 		int			pipeX = s->drawList.left - SPINLIST_PIPE_W - SPINLIST_GUTTER;
+		int			footRight = s->drawList.right;
 		int			pipeTop = s->generic.y + MENU_BUTTON_MED_HEIGHT;
 		int			footY = s->drawList.down;
 		int			hovered, i;
@@ -3069,7 +3071,7 @@ void Menu_Draw( menuframework_s *menu )
 		UI_DrawHandlePic( pipeX, footY, SPINLIST_PIPE_W * SPINLIST_ELBOW4_PAD,
 						  SPINLIST_FOOT_H * SPINLIST_ELBOW4_PAD, uis.graphicElbow4to4 );
 		UI_DrawHandlePic( pipeX + SPINLIST_PIPE_W, footY,
-						  s->drawList.right - ( pipeX + SPINLIST_PIPE_W ), SPINLIST_FOOT_H,
+						  footRight - ( pipeX + SPINLIST_PIPE_W ), SPINLIST_FOOT_H,
 						  uis.whiteShader );
 
 		hovered = UI_CursorInRect( s->drawList.left, s->drawList.up,
@@ -3092,9 +3094,9 @@ void Menu_Draw( menuframework_s *menu )
 			else
 				rowColor = s->color;
 
-			UI_DrawMenuPill( s->drawList.left, rowY, itemWidth, rowColor, qfalse, qtrue );
-			UI_DrawProportionalString( s->drawList.left + MENU_BUTTON_TEXT_X, rowY + s->textY,
-									   text, UI_SMALLFONT, colorTable[CT_BLACK] );
+			UI_DrawMenuPill( s->drawList.left, rowY, itemWidth, rowColor, qtrue, qtrue );
+			UI_DrawProportionalString( s->drawList.left + MENU_BUTTON_TEXT_X + MENU_BUTTON_MED_HEIGHT - 8,
+									   rowY + s->textY, text, UI_SMALLFONT, colorTable[CT_BLACK] );
 		}
 		ui.R_SetColor( NULL );
 	}

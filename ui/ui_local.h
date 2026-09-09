@@ -1548,10 +1548,12 @@ extern char *menu_button_text[MBT_MAX][2];
 // The open spin list: a row is a button pill with two pixels of black under it,
 // the bracket is the vertical rule down the left of the block, and the gutter
 // is the break between the two.
-#define SPINLIST_ROW_PITCH		(MENU_BUTTON_MED_HEIGHT + 2)
+// One gutter, used everywhere: between one row and the next, and between the
+#define SPINLIST_GUTTER			4
+// bracket and the rows.  Equal spacing on both axes is the whole look.
+#define SPINLIST_ROW_PITCH		(MENU_BUTTON_MED_HEIGHT + SPINLIST_GUTTER)
 #define SPINLIST_PIPE_W			4	// the vertical run down the left of the rows
 #define SPINLIST_FOOT_H			4	// the horizontal bar closing it off underneath
-#define SPINLIST_GUTTER			2
 // These corner textures draw their ink into part of the canvas and leave the
 // rest transparent, so a rect the size of the ink you want yields something
 // smaller.  Scale the rect by the inverse and the ink lands where it was asked

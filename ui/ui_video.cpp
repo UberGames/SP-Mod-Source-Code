@@ -1436,9 +1436,9 @@ static void VideoData_MenuInit( void )
 	s_video_menu.titleY						= MENU_TITLE_Y;
 	s_video_menu.titleI						= MNT_CONTROLSMENU_TITLE;
 	s_video_menu.footNoteEnum				= MNT_VIDEOSETUP;
-	// An open spin list may fill the black out to the right-hand end of the
-	// Video Data bracket rather than shrinking to its longest choice - the
-	// bracket's own top and bottom lines end there, in M_VideoDataMenu_Graphics.
+	// How far an open spin list may run before it would leave the black: the
+	// right-hand end of the Video Data bracket, where the bracket's own top and
+	// bottom lines end in M_VideoDataMenu_Graphics.
 	s_video_menu.spinListRight				= 494;
 
 	static int s_graphics_options_Names[] =

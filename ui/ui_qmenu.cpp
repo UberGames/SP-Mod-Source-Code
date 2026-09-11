@@ -2037,40 +2037,6 @@ void SpinControl_Init( menulist_s *s )
 	s->generic.bottom	= s->generic.y + MENU_BUTTON_MED_HEIGHT;
 }
 
-// The button's label.  Every other string in these menus comes from
-// menu_normal_text so it can be translated, but the MNT_ indices are fixed by
-// the string files inside the retail pk3s and none of them is CANCEL, so this
-// one word stays English in the localised builds.
-#define SPINLIST_CANCEL_TEXT	"CANCEL"
-
-/*
-===============
-SpinControl_CancelRect
-
-Where the button that dismisses the list sits: the right hand end of the block
-across the top.  The draw and the click both read this, because the two
-disagreeing means a button that does not press where it looks.
-
-The run it shares stops a gap short of each elbow rather than taking a seam
-into them.  A seam is for pieces of the same colour, where an overlap is
-invisible; the button is a different colour, and an overlap there draws over
-the corner instead of behind it.
-===============
-*/
-static void SpinControl_CancelRect( menulist_s *s, int *x, int *w )
-{
-	int	runLeft  = s->drawList.boxLeft + SPINLIST_ELBOW_INK_W + SPINLIST_GAP;
-	int	runRight = s->drawList.boxRight - SPINLIST_ELBOW_INK_W - SPINLIST_GAP;
-	int	label    = UI_ProportionalStringWidth( SPINLIST_CANCEL_TEXT, UI_SMALLFONT )
-				   + SPINLIST_GAP * 4;
-
-	*w = ( runRight - runLeft - SPINLIST_GAP ) * SPINLIST_CANCEL_PCT / 100;
-	if ( *w < label )
-		*w = label;
-
-	*x = runRight - *w;
-}
-
 /*
 ===============
 SpinControl_ItemName
@@ -2157,7 +2123,7 @@ deep enough to carry a button.
 static void SpinControl_LayoutList( menulist_s *s )
 {
 	drawList_t	*d = &s->drawList;
-	int			i, w, contentW, headerW, boxW, boxH;
+	int			i, w, contentW, boxW, boxH;
 
 	memset( d, 0, sizeof( *d ) );
 
@@ -2174,19 +2140,8 @@ static void SpinControl_LayoutList( menulist_s *s )
 
 	boxW = SPINLIST_RULE + SPINLIST_INSET + contentW + SPINLIST_INSET + SPINLIST_RULE;
 
-	// ...and wide enough that the top block can carry its quad and its button
-	// side by side.  Only their own widths are asked for, not the width at which
-	// the button would be its target share: insisting on that pushes the box out
-	// past the panel it opened in, and SpinControl_CancelRect already lets the
-	// button overrun its share rather than lose its label.
-	headerW = SPINLIST_ELBOW_INK_W * 2 + SPINLIST_HEAD_H + SPINLIST_GAP
-			+ UI_ProportionalStringWidth( SPINLIST_CANCEL_TEXT, UI_SMALLFONT )
-			+ SPINLIST_GAP * 4;
-	if ( boxW < headerW )
-		boxW = headerW;
-
-	boxH = SPINLIST_HEAD_H + SPINLIST_INSET + d->rows * SPINLIST_ROW_H
-		 + SPINLIST_PAD + SPINLIST_CORNER_INK;
+	boxH = SPINLIST_RULE + SPINLIST_INSET + d->rows * SPINLIST_ROW_H
+		 + SPINLIST_PAD + SPINLIST_RULE;
 
 	// It stands clear of the column of buttons rather than over it: the pill
 	// runs from generic.x to that plus its bar and both caps, and the box starts
@@ -2195,12 +2150,15 @@ static void SpinControl_LayoutList( menulist_s *s )
 	// rather than floating beside the list of them.
 	d->boxLeft	= s->generic.x + s->width + MENU_BUTTON_MED_HEIGHT * 2 - 16
 				  + SPINLIST_GUTTER;
-	d->boxTop	= s->generic.y + s->textY - SPINLIST_HEAD_H - SPINLIST_INSET;
+	d->boxTop	= s->generic.y + s->textY - SPINLIST_RULE - SPINLIST_INSET;
 
-	// A menu that has said how far its panel reaches lets the box fill the rest
-	// of it.  A box the width of its longest word leaves a ragged hole in the
-	// panel; one that reaches the edge reads as part of the furniture.
-	if ( s->generic.parent->spinListRight > d->boxLeft + boxW )
+	// It stops at its longest choice rather than filling the panel: a box no
+	// bigger than it has to be reads as a popup hanging off the control, where
+	// one stretched to the panel's edge reads as another window.  The panel's
+	// edge is only a cap, so a long choice cannot push it out over the rest of
+	// the menu.
+	if ( s->generic.parent->spinListRight
+		 && d->boxLeft + boxW > s->generic.parent->spinListRight )
 		boxW = s->generic.parent->spinListRight - d->boxLeft;
 
 	// Pull it back onto the screen rather than letting an edge cut it off.  It
@@ -2218,7 +2176,7 @@ static void SpinControl_LayoutList( menulist_s *s )
 	d->boxBottom	= d->boxTop + boxH;
 
 	d->left		= d->boxLeft + SPINLIST_RULE + SPINLIST_INSET;
-	d->up		= d->boxTop + SPINLIST_HEAD_H + SPINLIST_INSET;
+	d->up		= d->boxTop + SPINLIST_RULE + SPINLIST_INSET;
 	d->right	= d->boxRight - SPINLIST_RULE - SPINLIST_INSET;
 	d->down		= d->up + d->rows * SPINLIST_ROW_H;
 
@@ -2242,7 +2200,6 @@ scroll arrows and pressing the footer button all leave the value alone.
 static sfxHandle_t SpinControl_InitListRender( menulist_s *s, qboolean *chose )
 {
 	drawList_t	*d = &s->drawList;
-	int			cancelX, cancelW;
 
 	*chose = qfalse;
 
@@ -2256,15 +2213,6 @@ static sfxHandle_t SpinControl_InitListRender( menulist_s *s, qboolean *chose )
 		s->generic.parent->displaySpinList = s;
 		s->generic.parent->noNewSelecting = qtrue;
 		return menu_move_sound;
-	}
-
-	// the button at the right hand end of the top block, which closes without
-	// choosing
-	SpinControl_CancelRect( s, &cancelX, &cancelW );
-	if ( UI_CursorInRect( cancelX, d->boxTop, cancelW, SPINLIST_HEAD_H ) )
-	{
-		Menu_CloseSpinList( s->generic.parent );
-		return menu_out_sound;
 	}
 
 	// a row, which chooses and closes
@@ -2420,9 +2368,9 @@ void SpinControl_Draw( menulist_s *s )
 {
 	int x,y,listX,buttonColor,buttonTextColor;
 	// TiM - while another control's list is open this one cannot be used, so it
-	// says so by going quiet: the pill drops back and the value goes altogether,
-	// leaving the list the only thing in that column.  The pills stay put, so
-	// the panel keeps its shape.  Done here rather than by setting QMF_GRAYED,
+	// says so by going quiet: the pill and its value both drop back, leaving the
+	// list the only lit thing in the panel.  Nothing moves and nothing is
+	// hidden.  Done here rather than by setting QMF_GRAYED,
 	// because these menuframework_s are static and persistent: a flag set here
 	// has to be cleared again on every path that leaves the menu, which is the
 	// bug already fixed once in this file for displaySpinList after a K_MOUSE2.
@@ -2441,13 +2389,13 @@ void SpinControl_Draw( menulist_s *s )
 	if ( s->numitems > 0 && ( s->curvalue < 0 || s->curvalue >= s->numitems ) )
 		s->curvalue = 0;
 
-	// Print current value.  Not while another control's list is open: these
-	// values share the column the box stands in, and the ones above and below it
-	// are not covered by it - they sit alongside a list of the same kind of
-	// thing and read as part of it.  The pills stay, so nothing moves.
+	// Print current value.  It stays put while another control's list is open,
+	// and goes grey with the rest of that control: the box no longer covers the
+	// column these sit in, and a value that vanished would take the panel's
+	// shape with it.
 	// numitems is counted in SpinControl_Init by walking to the terminator, so
 	// anything above zero has a name at curvalue to print.
-	if ( !muted && s->numitems > 0 )
+	if ( s->numitems > 0 )
 	{
 		const char *value = SpinControl_ItemName( s, s->curvalue );
 
@@ -2455,7 +2403,7 @@ void SpinControl_Draw( menulist_s *s )
 		{
 			listX = x + MENU_BUTTON_MED_HEIGHT + s->width - 8 + MENU_BUTTON_MED_HEIGHT + 4;
 			UI_DrawProportionalString( listX, y + s->textY, value, UI_SMALLFONT,
-									   colorTable[CT_WHITE] );
+									   colorTable[muted ? CT_DKGREY : CT_WHITE] );
 		}
 	}
 
@@ -3205,16 +3153,12 @@ void Menu_Draw( menuframework_s *menu )
 		menulist_s	*s = (menulist_s *)menu->displaySpinList;
 		drawList_t	*d = &s->drawList;
 		int			ruleRight	= d->boxRight - SPINLIST_RULE;
-		int			runLeft		= d->boxLeft + SPINLIST_ELBOW_INK_W + SPINLIST_GAP;
-		int			bottomY		= d->boxBottom - SPINLIST_CORNER_INK;
-		int			footY		= bottomY + SPINLIST_CORNER_BAR_Y;
-		int			cancelX, cancelW, hovered, i;
+		int			bottomY		= d->boxBottom - SPINLIST_RULE;
+		int			hovered, i;
 
-		SpinControl_CancelRect( s, &cancelX, &cancelW );
-
-		// Ground.  Everything underneath keeps its place and stays legible - the
-		// other controls have gone grey in their own draw - but the box needs
-		// something solid or the panel art reads straight through the choices.
+		// Ground.  The controls underneath keep their places and stay legible -
+		// they have gone grey in their own draw - but the box needs something
+		// solid or the panel art reads straight through the choices.
 		ui.R_SetColor( colorTable[CT_BLACK] );
 		UI_DrawHandlePic( d->boxLeft, d->boxTop, d->boxRight - d->boxLeft,
 						  d->boxBottom - d->boxTop, uis.whiteShader );
@@ -3222,57 +3166,47 @@ void Menu_Draw( menuframework_s *menu )
 		// The frame, all of it under the one colour.  Nothing may draw a string
 		// in the middle of this: UI_DrawProportionalString ends by setting the
 		// colour back to NULL, which is white, and everything after it in the
-		// run would come out white too.  The label is drawn at the end.
+		// run would come out white too.
 		ui.R_SetColor( colorTable[s->color2] );
 
-		// The corners.  The top pair are the 18-deep elbows turned over, drawn
-		// from SPINLIST_ELBOW_FLIP_Y higher than they land; the bottom pair are
-		// the small corner, the right one mirrored - see ui_local.h.
-		UI_DrawHandlePic( d->boxLeft, d->boxTop - SPINLIST_ELBOW_FLIP_Y,
-						  SPINLIST_ELBOW_TEX_W, -SPINLIST_ELBOW_TEX_H,
-						  uis.graphicElbowL4to18 );
-		UI_DrawHandlePic( d->boxRight - SPINLIST_ELBOW_INK_W,
-						  d->boxTop - SPINLIST_ELBOW_FLIP_Y,
-						  SPINLIST_ELBOW_TEX_W, -SPINLIST_ELBOW_TEX_H,
-						  uis.graphicElbowR4to18 );
-		UI_DrawHandlePic( d->boxLeft, bottomY,
+		// The four corners, one texture drawn four ways.  Each is placed by
+		// where its ink has to land, and on the axes it is flipped in the ink
+		// sits SPINLIST_CORNER_FLIP into the rect - see ui_local.h.
+		UI_DrawHandlePic( d->boxLeft, d->boxTop - SPINLIST_CORNER_FLIP,
+						  SPINLIST_CORNER_TEX, -SPINLIST_CORNER_TEX,
+						  uis.graphicCornerL4to4 );
+		UI_DrawHandlePic( d->boxRight - SPINLIST_CORNER_TEX,
+						  d->boxTop - SPINLIST_CORNER_FLIP,
+						  -SPINLIST_CORNER_TEX, -SPINLIST_CORNER_TEX,
+						  uis.graphicCornerL4to4 );
+		UI_DrawHandlePic( d->boxLeft, bottomY - SPINLIST_CORNER_BAR_Y,
 						  SPINLIST_CORNER_TEX, SPINLIST_CORNER_TEX,
 						  uis.graphicCornerL4to4 );
-		UI_DrawHandlePic( d->boxRight - SPINLIST_CORNER_TEX, bottomY,
+		UI_DrawHandlePic( d->boxRight - SPINLIST_CORNER_TEX,
+						  bottomY - SPINLIST_CORNER_BAR_Y,
 						  -SPINLIST_CORNER_TEX, SPINLIST_CORNER_TEX,
 						  uis.graphicCornerL4to4 );
 
-		// The top block, in two segments between the elbows: a plain quad, and
-		// the button at the right hand end of it.  Black shows between every
-		// pair - elbow, quad, button, elbow - so the block reads as one run
-		// divided rather than as pieces that happen to be in a row.
-		UI_DrawHandlePic( runLeft, d->boxTop, ( cancelX - SPINLIST_GAP ) - runLeft,
-						  SPINLIST_HEAD_H, uis.whiteShader );
-
-		// the sides, and the rule along the bottom between the small corners
-		UI_DrawHandlePic( d->boxLeft, d->boxTop + SPINLIST_HEAD_H, SPINLIST_RULE,
-						  ( bottomY + SPINLIST_SEAM ) - ( d->boxTop + SPINLIST_HEAD_H ),
-						  uis.whiteShader );
-		UI_DrawHandlePic( ruleRight, d->boxTop + SPINLIST_HEAD_H, SPINLIST_RULE,
-						  ( bottomY + SPINLIST_SEAM ) - ( d->boxTop + SPINLIST_HEAD_H ),
-						  uis.whiteShader );
-		UI_DrawHandlePic( d->boxLeft + SPINLIST_CORNER_INK - SPINLIST_SEAM, footY,
+		// The four rules, each running a seam into the corner at either end so
+		// the joins cannot open up when 640x480 is stretched to the window.
+		UI_DrawHandlePic( d->boxLeft + SPINLIST_CORNER_INK - SPINLIST_SEAM, d->boxTop,
 						  ( d->boxRight - SPINLIST_CORNER_INK + SPINLIST_SEAM )
 						  - ( d->boxLeft + SPINLIST_CORNER_INK - SPINLIST_SEAM ),
-						  SPINLIST_FOOT_H, uis.whiteShader );
-
-		// The button wears the control's own resting colour, the shade the side
-		// buttons use, so it reads as the one pressable thing up there without
-		// competing with the frame it sits in.
-		ui.R_SetColor( colorTable[
-			UI_CursorInRect( cancelX, d->boxTop, cancelW, SPINLIST_HEAD_H )
-			? CT_WHITE : s->color] );
-		UI_DrawHandlePic( cancelX, d->boxTop, cancelW, SPINLIST_HEAD_H,
+						  SPINLIST_RULE, uis.whiteShader );
+		UI_DrawHandlePic( d->boxLeft + SPINLIST_CORNER_INK - SPINLIST_SEAM, bottomY,
+						  ( d->boxRight - SPINLIST_CORNER_INK + SPINLIST_SEAM )
+						  - ( d->boxLeft + SPINLIST_CORNER_INK - SPINLIST_SEAM ),
+						  SPINLIST_RULE, uis.whiteShader );
+		UI_DrawHandlePic( d->boxLeft, d->boxTop + SPINLIST_CORNER_INK - SPINLIST_SEAM,
+						  SPINLIST_RULE,
+						  ( d->boxBottom - SPINLIST_CORNER_INK + SPINLIST_SEAM )
+						  - ( d->boxTop + SPINLIST_CORNER_INK - SPINLIST_SEAM ),
 						  uis.whiteShader );
-		UI_DrawProportionalString( cancelX + SPINLIST_GAP * 2,
-								   d->boxTop + MENU_BUTTON_TEXT_Y,
-								   SPINLIST_CANCEL_TEXT, UI_SMALLFONT,
-								   colorTable[CT_BLACK] );
+		UI_DrawHandlePic( ruleRight, d->boxTop + SPINLIST_CORNER_INK - SPINLIST_SEAM,
+						  SPINLIST_RULE,
+						  ( d->boxBottom - SPINLIST_CORNER_INK + SPINLIST_SEAM )
+						  - ( d->boxTop + SPINLIST_CORNER_INK - SPINLIST_SEAM ),
+						  uis.whiteShader );
 
 		// The choices, plain text on the black - no pill each, because a pill is
 		// how this menu draws something you press, and a list of twenty pressable
@@ -3597,10 +3531,8 @@ void Menu_Cache( void )
 	uis.graphicCircle2 = ui.R_RegisterShaderNoMip("menu/objectives/circle.tga");
 	uis.graphicEmptyCircle2 = ui.R_RegisterShaderNoMip("menu/objectives/circle_out.tga");
 	uis.graphicButtonLeftEnd = ui.R_RegisterShaderNoMip("menu/common/barbuttonleft.tga");
-	// The spin list's corners, turning its 4-thin sides into the 18-tall bars
-	// above and below.  Each serves at both ends, drawn over for the top.
-	uis.graphicElbowL4to18 = ui.R_RegisterShaderNoMip("menu/common/corner_ll_4_18.tga");
-	uis.graphicElbowR4to18 = ui.R_RegisterShaderNoMip("menu/common/corner_lr_4_18.tga");
+	// The spin list's frame turns all four of its corners with this one, drawn
+	// mirrored, upside down, or both.
 	uis.graphicCornerL4to4 = ui.R_RegisterShaderNoMip("menu/common/corner_ll_4_4.tga");
 
 	uis.graphicBracket1CornerLU =  ui.R_RegisterShaderNoMip("menu/common/corner_lu.tga");

@@ -5,23 +5,123 @@
 
 /*
 ================
+CG_UpdateScreenScale
+
+Works out how the 640x480 layout sits on the screen.
+
+Everything 2D ends up in a 640x480 box stretched across the whole viewport, so
+scaling x by vidWidth/640 and y by vidHeight/480 gives back precisely the
+stretch it looks like it is undoing: on a 16:9 monitor the health bar, the
+crosshair and every letter came out a third wider than tall.
+
+One scale for both axes instead - the largest that still fits - and a bias that
+centres what is left.  The HUD is then free to move out past the 4:3 canvas by
+wideMargin on either side, which is what puts it back in the corners of the
+screen; see CG_WideLeft and CG_WideRight.
+
+wideMargin stops growing at 16:9.  Up to there the HUD reaches the physical
+corners of the display, which is where it belongs and where it has always been.
+Past there - the ultrawides, 21:9 and up - the corners are so far apart that a
+health bar in one and an ammo bar in the other is a HUD you have to turn your
+head to read, so it stays in a 16:9 canvas in the middle of the screen and the
+world spreads out behind it.
+================
+*/
+#define CG_HUD_MAX_ASPECT	( 16.0f / 9.0f )
+
+void CG_UpdateScreenScale( void )
+{
+	float	scale, aspect, hudAspect;
+
+	cgs.screenXScale = cgs.screenYScale = 1.0f;
+	cgs.screenXBias = cgs.screenYBias = 0.0f;
+	cgs.wideMargin = 0.0f;
+
+	if ( cgs.glconfig.vidWidth <= 0 || cgs.glconfig.vidHeight <= 0 )
+		return;
+
+	aspect = (float)cgs.glconfig.vidWidth / (float)cgs.glconfig.vidHeight;
+
+	scale = cgs.glconfig.vidHeight * ( 1.0f / SCREEN_HEIGHT );
+	if ( scale * SCREEN_WIDTH > cgs.glconfig.vidWidth )
+		scale = cgs.glconfig.vidWidth * ( 1.0f / SCREEN_WIDTH );	// taller than 4:3: letterbox instead
+
+	cgs.screenXScale = cgs.screenYScale = scale;
+	cgs.screenXBias = 0.5f * ( cgs.glconfig.vidWidth - scale * SCREEN_WIDTH );
+	cgs.screenYBias = 0.5f * ( cgs.glconfig.vidHeight - scale * SCREEN_HEIGHT );
+
+	hudAspect = aspect;
+	if ( hudAspect > CG_HUD_MAX_ASPECT )
+		hudAspect = CG_HUD_MAX_ASPECT;
+
+	if ( hudAspect > 4.0f / 3.0f )
+		cgs.wideMargin = 0.5f * ( SCREEN_HEIGHT * hudAspect - SCREEN_WIDTH );
+}
+
+/*
+================
+CG_WideLeft
+CG_WideRight
+
+An x in 640x480 layout units, moved out to the edge of the HUD's canvas rather
+than the edge of the 4:3 one.  Anything that belongs in a corner of the screen
+goes through these; anything that is full-screen 4:3 art, or is centred, does
+not.
+================
+*/
+float CG_WideLeft( float x )
+{
+	return x - cgs.wideMargin;
+}
+
+float CG_WideRight( float x )
+{
+	return x + cgs.wideMargin;
+}
+
+/*
+================
+CG_DrawCanvasMargins
+
+Blacks out the screen either side of the 4:3 canvas.
+
+For the full-screen 2D pages - the loading screen, the mission briefing - which
+are 4:3 art and now keep that shape.  The colour buffer is not cleared between
+frames, so without this the margins hold the previous frame smeared sideways.
+================
+*/
+void CG_DrawCanvasMargins( void )
+{
+	const vec4_t	black = { 0.0f, 0.0f, 0.0f, 1.0f };
+	float			w = cgs.screenXBias;
+	float			h = cgs.screenYBias;
+
+	if ( w > 0.0f )
+	{
+		CG_FillRect2( 0, 0, w, cgs.glconfig.vidHeight, black );
+		CG_FillRect2( cgs.glconfig.vidWidth - w, 0, w, cgs.glconfig.vidHeight, black );
+	}
+
+	if ( h > 0.0f )
+	{
+		CG_FillRect2( 0, 0, cgs.glconfig.vidWidth, h, black );
+		CG_FillRect2( 0, cgs.glconfig.vidHeight - h, cgs.glconfig.vidWidth, h, black );
+	}
+}
+
+/*
+================
 CG_AdjustFrom640
 
 Adjusted for resolution and screen aspect ratio
 ================
 */
 void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
-#if 0
-	// adjust for wide screens
-	if ( cgs.glconfig.vidWidth * 480 > cgs.glconfig.vidHeight * 640 ) {
-		*x += 0.5 * ( cgs.glconfig.vidWidth - ( cgs.glconfig.vidHeight * 640 / 480 ) );
-	}
-#endif
 	// scale for screen sizes
-	*x *= cgs.screenXScale;
-	*y *= cgs.screenYScale;
 	*w *= cgs.screenXScale;
 	*h *= cgs.screenYScale;
+	*x = *x * cgs.screenXScale + cgs.screenXBias;
+	*y = *y * cgs.screenYScale + cgs.screenYBias;
 }
 
 /*
@@ -79,6 +179,21 @@ A width of 0 will draw with the original image width
 */
 void CG_DrawPic( float x, float y, float width, float height, qhandle_t hShader ) {
 	CG_AdjustFrom640( &x, &y, &width, &height );
+	cgi_R_DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
+}
+
+/*
+================
+CG_DrawPic2
+
+Real coords, the companion of CG_FillRect2.
+
+For an overlay that belongs to the view rather than to the HUD - the transporter
+flash, the zoom mask - which covers the whole display instead of the 4:3 canvas
+the HUD is laid out on.
+================
+*/
+void CG_DrawPic2( float x, float y, float width, float height, qhandle_t hShader ) {
 	cgi_R_DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
 }
 
@@ -514,6 +629,27 @@ void CG_DrawNumField (int x, int y, int width, int value,int charWidth,int charH
 CG_PrintInterfaceGraphics
 ================
 */
+/*
+================
+CG_InterfaceX
+
+Where an entry of the HUD table belongs across the screen.
+
+The health and armour bars hug the bottom left, the ammo bar the bottom right,
+and on a screen wider than 4:3 each wants to follow its own corner out rather
+than sit inside the 4:3 box in the middle.  The table is Raven's layout data and
+still reads in 640x480 units; this is the only place that knows about the wider
+canvas, so the entries can keep being written and animated as they always were.
+================
+*/
+float CG_InterfaceX( int index )
+{
+	if ( index > IG_AMMO_START && index < IG_AMMO_END )
+		return CG_WideRight( (float)interface_graphics[index].x );
+
+	return CG_WideLeft( (float)interface_graphics[index].x );
+}
+
 void CG_PrintInterfaceGraphics(int min,int max)
 {
 	int i;
@@ -531,7 +667,7 @@ void CG_PrintInterfaceGraphics(int min,int max)
 			{
 				cgi_R_SetColor(colorTable[interface_graphics[i].color]);
 
-				CG_DrawPic( interface_graphics[i].x, 
+				CG_DrawPic( CG_InterfaceX( i ), 
 				interface_graphics[i].y,	
 				interface_graphics[i].width, 
 				interface_graphics[i].height,	
@@ -543,7 +679,7 @@ void CG_PrintInterfaceGraphics(int min,int max)
 			cgi_R_SetColor(colorTable[interface_graphics[i].color]);
 
 			CG_DrawNumField (
-				interface_graphics[i].x, 
+				CG_InterfaceX( i ), 
 				interface_graphics[i].y, 3, 
 				interface_graphics[i].max, 
 				interface_graphics[i].width, 
@@ -819,8 +955,8 @@ static void CG_DrawProportionalString2( int x, int y, const char* str, vec4_t co
 	cgi_R_SetColor(color);
 	
 //	ax = x * cgs.charScale + cgs.bias;
-	ax = x * cgs.screenXScale;
-	ay = y * cgs.screenYScale;
+	ax = x * cgs.screenXScale + cgs.screenXBias;
+	ay = y * cgs.screenYScale + cgs.screenYBias;
 	holdY = ay;
 
 	if (style == CG_TINYFONT)

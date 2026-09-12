@@ -651,7 +651,15 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView );
 #define CG_TINYFONT		0x00010000
 
 
+void CG_UpdateScreenScale( void );
 void CG_AdjustFrom640( float *x, float *y, float *w, float *h );
+void CG_FillRect2( float x, float y, float width, float height, const float *color );
+void CG_DrawCanvasMargins( void );
+void CG_DrawPic2( float x, float y, float width, float height, qhandle_t hShader );
+// x moved out to the edge of the HUD canvas rather than the 4:3 one
+float CG_WideLeft( float x );
+float CG_WideRight( float x );
+float CG_InterfaceX( int index );
 void CG_FillRect( float x, float y, float width, float height, const float *color );
 void CG_Scissor( float x, float y, float width, float height);
 void CG_DrawPic( float x, float y, float width, float height, qhandle_t hShader );

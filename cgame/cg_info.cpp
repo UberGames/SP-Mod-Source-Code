@@ -907,6 +907,13 @@ void CG_DrawInformation( void ) {
 		//
 		cgi_R_SetColor( NULL );
 		CG_DrawPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, levelshot );
+
+		// The levelshots are 4:3 and now keep that shape, so black out the
+		// margin either side before the detail texture blends over the lot -
+		// the colour buffer still holds whatever was last drawn there.  Only in
+		// this branch: the other keeps an image that was captured at the shape
+		// of the screen and so already fills it.
+		CG_DrawCanvasMargins();
 	}
 	// blend a detail texture over it
 	detail = cgi_R_RegisterShader( "levelShotDetail" );

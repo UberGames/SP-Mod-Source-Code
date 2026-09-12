@@ -3220,10 +3220,15 @@ void Menu_Draw( menuframework_s *menu )
 						  ( d->boxRight - SPINLIST_CORNER_INK + SPINLIST_SEAM )
 						  - ( d->boxLeft + SPINLIST_LCORNER_INK_W - SPINLIST_SEAM ),
 						  SPINLIST_RULE, uis.whiteShader );
-		UI_DrawHandlePic( d->boxLeft, d->boxTop + SPINLIST_LCORNER_INK_H - SPINLIST_SEAM,
+		// The thick side breaks from its corners rather than seaming into them,
+		// the way the panel's own container does: the loop around the options
+		// runs unbroken and the pieces down its side are separate lengths.  It
+		// is the only rule that does, which is what makes it read as a segment
+		// of rail rather than as one of four sides.
+		UI_DrawHandlePic( d->boxLeft, d->boxTop + SPINLIST_LCORNER_INK_H + SPINLIST_GAP,
 						  SPINLIST_RULE_L,
-						  ( bottomY - SPINLIST_CORNER_BAR_Y + SPINLIST_SEAM )
-						  - ( d->boxTop + SPINLIST_LCORNER_INK_H - SPINLIST_SEAM ),
+						  ( bottomY - SPINLIST_CORNER_BAR_Y - SPINLIST_GAP )
+						  - ( d->boxTop + SPINLIST_LCORNER_INK_H + SPINLIST_GAP ),
 						  uis.whiteShader );
 		UI_DrawHandlePic( ruleRight, d->boxTop + SPINLIST_CORNER_INK - SPINLIST_SEAM,
 						  SPINLIST_RULE,

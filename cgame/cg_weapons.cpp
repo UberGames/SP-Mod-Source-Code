@@ -1089,7 +1089,14 @@ void CG_FireWeapon( centity_t *cent, qboolean alt_fire )
 	cent->muzzleFlashTime = cg.time;
 
 	// lightning type guns only does this this on initial press
+	//
+	// The tricorder belongs in here too.  It has a firetime of 100ms, so holding the
+	// button down restarts its scan sound ten times a second, and since starting a
+	// sound on a channel cuts off whatever was already there, all you ever hear is the
+	// first tenth of it: a rapid clicking instead of a scan.  Held down it now behaves
+	// like the phaser, sounding once on the press and looping from CG_StopWeaponSounds.
 	if ( ent->weapon == WP_PHASER || ( ent->weapon == WP_DREADNOUGHT && !alt_fire )
+									|| ent->weapon == WP_TRICORDER
 									|| ent->weapon == WP_BORG_DRILL || ent->weapon == WP_BORG_ASSIMILATOR )
 	{
 		if ( cent->pe.lightningFiring ) 

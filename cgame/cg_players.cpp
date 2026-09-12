@@ -3012,6 +3012,7 @@ void CG_StopWeaponSounds( centity_t *cent )
 {
 	qboolean		weak = qfalse;
 	weaponInfo_t	*weapon = &cg_weapons[ cent->currentState.weapon ];
+	sfxHandle_t		firingLoop, altFiringLoop;
 
 	if ( !( cent->currentState.eFlags & EF_FIRING ) )
 	{
@@ -3033,24 +3034,43 @@ void CG_StopWeaponSounds( centity_t *cent )
 			weak = qtrue;
 	}
 
+	firingLoop = weapon->firingSound;
+	altFiringLoop = weapon->altFiringSound;
+
+	// The tricorder keeps its two scan sounds in the flash slots rather than the firing
+	// slots, so there is nothing here for the loop to play.  Borrow them: a scan is a
+	// held action and the sounds are whole takes, so they loop the way the phaser's do.
+	if ( cent->currentState.weapon == WP_TRICORDER )
+	{
+		if ( !firingLoop )
+		{
+			firingLoop = weapon->flashSound;
+		}
+
+		if ( !altFiringLoop )
+		{
+			altFiringLoop = weapon->altFlashSound;
+		}
+	}
+
 	if ( cent->currentState.eFlags & EF_ALT_FIRING && !weak )
 	{
-		if ( weapon->altFiringSound )
+		if ( altFiringLoop )
 		{
-			cgi_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->altFiringSound );
+			cgi_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, altFiringLoop );
 		}
 		cent->pe.lightningFiring = qtrue;
 	}
 	else if ( cent->currentState.eFlags & EF_FIRING )
 	{
 		cent->pe.lightningFiring = qtrue;
-		if ( weapon->firingSound )
+		if ( firingLoop )
 		{
 			// Weak phaser sound should stutter
 			if ( weak && (rand() & 1) )
 				return;
 
-			cgi_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->firingSound );
+			cgi_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, firingLoop );
 		}
 	}
 }

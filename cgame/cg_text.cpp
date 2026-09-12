@@ -192,7 +192,11 @@ void CG_DrawGameText(void)
 
 	// Set Y of the first line
 	y = cg.printTextY;
-	x = GAMETEXT_X_START;
+	// Out to the screen's edge with the speaker's head (CG_DrawTalk), so the two
+	// stay together and line up with the health bar below.  Only where it is
+	// drawn - the wrapping above measures the same column width wherever the
+	// block ends up.  At 4:3 the margin is zero and this is column 75, as ever.
+	x = CG_WideLeft( GAMETEXT_X_START );
 
 	// Background
 	cgi_R_SetColor(color);	// Background, CLAMP TO 4 LINES

@@ -299,6 +299,11 @@ static void CG_DrawTalk(centity_t	*cent)
 		color[2] = colorTable[CT_BLACK][2];
 		color[3] = 0.350F;
 
+		// Follows the screen's edge out with the rest of the HUD.  The dialogue
+		// moves with it (CG_DrawGameText), so the speaker's head stays against
+		// the words they are saying and the pair lines up with the health bar
+		// below rather than floating in from the corner.  Not the captions,
+		// which are a different thing: centred, and with no head beside them.
 		cgi_R_SetColor(color);	// Background
 		CG_DrawPic( CG_WideLeft( 5 ), 27,  50, 64,	cgs.media.ammoslider );
 

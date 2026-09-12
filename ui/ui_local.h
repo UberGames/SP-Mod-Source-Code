@@ -1835,6 +1835,12 @@ typedef struct
 	int	top;
 		
 	const char **itemnames;
+	// What to show for the current value while the list is closed, when that
+	// wants to be shorter than the entry the list shows.  A display picker
+	// reads "DISPLAY 1" in the row and "1: LG ULTRAGEAR+" in the list: the row
+	// has a column to fit and the list has room to say which one that is.
+	// NULL for the usual case, where the two are the same string.
+	const char **shortnames;
 	int		*listnames;
 	int width;
 	int height;

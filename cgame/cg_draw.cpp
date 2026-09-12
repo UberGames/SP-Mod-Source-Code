@@ -1437,8 +1437,12 @@ static void CG_LabelViewEntity( gentity_t *crossEnt, char *name, qboolean scanAl
 					}
 				}
 
-				if ( !drawHealth )
-				{
+				if ( !drawHealth || !cg_tricorderHealthBar.integer )
+				{//Retail never shows this bar.  The code to draw it is here and works, but
+				 //CG_ColorForGivenHealth leaves alpha alone and nothing else filled it in, so
+				 //the shipped game drew the bar every scan with whatever alpha was on the
+				 //stack - which on the retail build came out at nothing.  Off to match it;
+				 //cg_tricorderHealthBar 1 brings it back.
 					continue;
 				}
 				

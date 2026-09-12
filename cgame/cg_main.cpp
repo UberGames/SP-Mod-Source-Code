@@ -77,6 +77,7 @@ vmCvar_t	cg_drawSnapshot;
 vmCvar_t	cg_drawAmmoWarning;
 vmCvar_t	cg_drawCrosshair;
 vmCvar_t	cg_drawCrosshairNames;
+vmCvar_t	cg_tricorderHealthBar;
 vmCvar_t	cg_crosshairX;
 vmCvar_t	cg_crosshairY;
 vmCvar_t	cg_crosshairSize;
@@ -142,6 +143,7 @@ cvarTable_t		cvarTable[] = {
 	{ &cg_drawAmmoWarning, "cg_drawAmmoWarning", "1", CVAR_ARCHIVE  },
 	{ &cg_drawCrosshair, "cg_drawCrosshair", "1", CVAR_ARCHIVE },
 	{ &cg_drawCrosshairNames, "cg_drawCrosshairNames", "1", CVAR_ARCHIVE },
+	{ &cg_tricorderHealthBar, "cg_tricorderHealthBar", "0", CVAR_ARCHIVE },
 
 	{ &cg_crosshairSize, "cg_crosshairSize", "24", CVAR_ARCHIVE },
 	{ &cg_crosshairHealth, "cg_crosshairHealth", "0", CVAR_ARCHIVE },

@@ -1442,6 +1442,14 @@ static void CG_LabelViewEntity( gentity_t *crossEnt, char *name, qboolean scanAl
 					continue;
 				}
 				
+				if ( crossEnt->max_health <= 0 )
+				{//Nothing scanned here carries a health bar.  Doors, consoles and the rest
+				 //of the scannable world never set max_health, so this divide is 0/0, and the
+				 //NaN it gives back becomes INT_MIN on the way into an int - which paints a
+				 //red bar four pixels tall across the full width of the screen.
+					continue;
+				}
+
 				health = ceil( (float)crossEnt->health/(float)crossEnt->max_health*100.0f );
 				CG_ColorForGivenHealth( hcolor, health );
 				hwidth = (float)health*0.5f;

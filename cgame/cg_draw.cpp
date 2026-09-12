@@ -1452,6 +1452,9 @@ static void CG_LabelViewEntity( gentity_t *crossEnt, char *name, qboolean scanAl
 
 				health = ceil( (float)crossEnt->health/(float)crossEnt->max_health*100.0f );
 				CG_ColorForGivenHealth( hcolor, health );
+				hcolor[3] = 1.0f;	//the health colours are only ever R, G and B; CG_ColorForHealth
+									//sets this before calling the same helper, this path never did,
+									//so the bar was drawn with whatever alpha was on the stack.
 				hwidth = (float)health*0.5f;
 
 				y += lineWidth + 2;

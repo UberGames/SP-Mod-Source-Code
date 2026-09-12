@@ -2032,7 +2032,9 @@ static void CG_DrawTED (void) {
 	centity_t	*cent;
 	centity_t	*player = &cg_entities[0];
 	static	qboolean	radarOn = qfalse;
+	static	qboolean	radarAltHeld = qfalse;
 	static	int			radarToggleDebounceTime = 0;
+	qboolean	altHeld;
 
 	if ( !player->gent )
 	{
@@ -2046,6 +2048,8 @@ static void CG_DrawTED (void) {
 
 	if ( player->gent->client->ps.weapon != WP_TRICORDER )
 	{//switched away from Tricorder
+		radarAltHeld = qfalse;
+
 		if ( radarOn )
 		{//turn it off
 			radarOn = qfalse;
@@ -2053,14 +2057,23 @@ static void CG_DrawTED (void) {
 			cgi_S_StartSound( NULL, 0, CHAN_ITEM, cgs.media.triRadarSound );
 		}
 	}
-	else if ( player->gent->client->buttons & BUTTON_ALT_ATTACK )
-	{//holding alt-fire and have tricorder in-hand
-		if ( radarToggleDebounceTime < cg.time )
+	else
+	{//tricorder in hand
+		altHeld = (qboolean)( ( player->gent->client->buttons & BUTTON_ALT_ATTACK ) != 0 );
+
+		// Toggle on the press, not while the button is down.  Testing the held state
+		// flipped the radar every RADAR_DEBOUNCE_TIME for as long as alt-fire was held -
+		// five times a second, restarting the scale animation and the sound each time.
+		// A longer debounce would only have slowed that down; it is the held test that is
+		// wrong.  The debounce stays so a fast double tap cannot outrun the animation.
+		if ( altHeld && !radarAltHeld && radarToggleDebounceTime < cg.time )
 		{//toggle tricorder on & off
 			radarOn = !radarOn;
 			radarToggleDebounceTime = cg.time + RADAR_DEBOUNCE_TIME;
 			cgi_S_StartSound( NULL, 0, CHAN_ITEM, cgs.media.triRadarSound );
 		}
+
+		radarAltHeld = altHeld;
 	}
 
 	if ( !radarOn && radarToggleDebounceTime < cg.time - RADAR_ACTIVATE_TIME )

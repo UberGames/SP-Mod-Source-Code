@@ -566,9 +566,29 @@ qboolean CG_CalcFOVFromX( float fov_x )
 	float	fov_y;
 	qboolean	inwater;
 
-	x = cg.refdef.width / tan( fov_x / 360 * M_PI );
-	fov_y = atan2( cg.refdef.height, x );
+	// cg_fov, the zoom angles and every angle a cutscene camera asks for are
+	// horizontal, and were all chosen looking at a 4:3 screen.  Taking them at
+	// face value on a wider one and deriving the vertical angle from the real
+	// shape - which is what this used to do - keeps the horizontal angle fixed
+	// and eats the vertical: a 16:9 monitor showed a quarter less of the world
+	// top to bottom than a 4:3 one, and an ultrawide barely more than a letterbox
+	// slot.  Wider hardware showing you less is the wrong way round.
+	//
+	// So the horizontal angle is read as the 4:3 angle it was written as, turned
+	// into the vertical angle it implies, and that vertical angle is held while
+	// the horizontal one opens out to fit the screen.  4:3 comes out exactly as
+	// it always did, and anything wider adds to the sides.
+	x = ( SCREEN_HEIGHT * ( 4.0f / 3.0f ) ) / tan( fov_x / 360 * M_PI );
+	fov_y = atan2( (float)SCREEN_HEIGHT, x );
 	fov_y = fov_y * 360 / M_PI;
+
+	if ( cg.refdef.width > 0 && cg.refdef.height > 0 )
+	{
+		float	y = cg.refdef.height / tan( fov_y / 360 * M_PI );
+
+		fov_x = atan2( (float)cg.refdef.width, y );
+		fov_x = fov_x * 360 / M_PI;
+	}
 
 	// there's a problem with this, it only takes the leafbrushes into account, not the entity brushes,
 	//	so if you give slime/water etc properties to a func_door area brush in order to move the whole water 

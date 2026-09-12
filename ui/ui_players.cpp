@@ -708,13 +708,10 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 	// only the weapon, offset by its tag, clips into view as a smear.  Use the
 	// unscaled width so the preview looks the same at every resolution.
 	// fov_y comes off the same unscaled box, so the model is framed by the
-	// layout rather than by the pixels: uis.scalex is vidWidth/640 and
-	// uis.scaley is vidHeight/480, which are only equal at 4:3, so measuring
-	// the box in pixels showed less and less of the model vertically as the
-	// display got wider.  Using the 640x480 box shows exactly what retail
-	// showed at every resolution, and stretches the model the same way the
-	// menu art around it is stretched - so if the 2D scale is ever made
-	// uniform, this becomes undistorted along with everything else.
+	// layout rather than by the pixels, and shows exactly what retail showed at
+	// every resolution.  It is also framed the same way the menu art around it
+	// is: the two scales in UI_UpdateScreenScale are now equal, so the preview
+	// is undistorted along with everything else.
 	refdef.fov_x = (int)( fovWidth / 640.0f * 90.0f );
 	xx = fovWidth / tan( refdef.fov_x / 360 * M_PI );
 	refdef.fov_y = atan2( fovHeight, xx );

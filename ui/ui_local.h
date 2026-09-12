@@ -2145,9 +2145,14 @@ typedef struct {
 	qhandle_t			charsetPropGlow;
 	qboolean			cursorDraw;
 	qhandle_t			cursor;
+	// The menus are laid out on a 640x480 canvas and keep that shape whatever
+	// the screen is: scalex and scaley are equal, so nothing is stretched, and
+	// the bias is the margin that centres the canvas in a screen of another
+	// shape.  See UI_UpdateScreenScale.
 	float				scalex;
 	float				scaley;
-	//float				bias;
+	float				xbias;
+	float				ybias;
 	qboolean			firstdraw;
 
 	// Common Menu Graphics
@@ -2297,6 +2302,8 @@ extern void			UI_DrawString( int x, int y, const char* str, int style, vec4_t co
 extern void			UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t color );
 extern void			UI_DrawChar( int x, int y, int ch, int style, vec4_t color );
 extern qboolean 	UI_CursorInRect (int x, int y, int width, int height);
+extern void			UI_UpdateScreenScale( void );
+extern void			UI_FillScreen( const float *color );
 extern void			UI_AdjustFrom640( float *x, float *y, float *w, float *h );
 extern void			UI_DrawTextBox (int x, int y, int width, int lines);
 extern void			UI_GetActiveMenu( char **menuname, qboolean *fullscreen );

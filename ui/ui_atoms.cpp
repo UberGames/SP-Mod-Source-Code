@@ -382,9 +382,8 @@ static void UI_DrawProportionalString2( int x, int y, const char* str, vec4_t co
 	// draw the colored text
 	ui.R_SetColor( color );
 	
-//	ax = x * uis.scale + uis.bias;
-	ax = x * uis.scalex;
-	ay = y * uis.scaley;
+	ax = x * uis.scalex + uis.xbias;
+	ay = y * uis.scaley + uis.ybias;
 	holdY = ay;
 
 	sizeScale = UI_ProportionalSizeScale( style );
@@ -1381,18 +1380,7 @@ static void UI_Init( int apiVersion, uiimport_t *uiimport ) {
 	// get static data (glconfig, media)
 	ui.GetGlconfig( &uis.glconfig );
 
-	uis.scaley = uis.glconfig.vidHeight * (1.0/480.0);
-	uis.scalex = uis.glconfig.vidWidth * (1.0/640.0);
-/*	if ( uis.glconfig.vidWidth * 480 > uis.glconfig.vidHeight * 640 ) {
-		// wide screen
-		uis.bias = 0.5 * ( uis.glconfig.vidWidth - ( uis.glconfig.vidHeight * (640.0/480.0) ) );
-	}
-	else 
-	{
-		// no wide screen
-		uis.bias = 0;
-	}
-*/
+	UI_UpdateScreenScale();
 	gameinfo_import.FS_FOpenFile = ui.FS_FOpenFile;
 	gameinfo_import.FS_Read = ui.FS_Read;
 	gameinfo_import.FS_ReadFile = ui.FS_ReadFile;
@@ -1469,6 +1457,57 @@ void Com_Printf( const char *msg, ... ) {
 
 /*
 ================
+UI_FillScreen
+
+Covers the whole display, not the 4:3 canvas the menus are laid out on.  Real
+screen coordinates - for what sits behind a menu rather than in it.
+================
+*/
+void UI_FillScreen( const float *color )
+{
+	ui.R_SetColor( color );
+	ui.R_DrawStretchPic( 0, 0, uis.glconfig.vidWidth, uis.glconfig.vidHeight,
+						 0, 0, 1, 1, uis.whiteShader );
+}
+
+/*
+================
+UI_UpdateScreenScale
+
+Works out how the 640x480 menu canvas sits on the screen.
+
+The engine draws all 2D into a 640x480 box stretched across the whole viewport,
+so scaling x by vidWidth/640 and y by vidHeight/480 - which is what this used to
+do - hands back exactly the stretch it was trying to undo: on a 16:9 monitor
+every circle in the menus was an ellipse a third wider than it is tall.
+
+One scale for both axes instead, the one that makes the canvas as large as it
+goes while still fitting, and a bias that centres what is left over.  Elite
+Force's menus are 4:3 art down to the last elbow, and this is what keeps them
+that shape.  The margin either side is blacked out by the engine.
+================
+*/
+void UI_UpdateScreenScale( void )
+{
+	float	scale;
+
+	uis.scalex = uis.scaley = 1.0f;
+	uis.xbias = uis.ybias = 0.0f;
+
+	if ( uis.glconfig.vidWidth <= 0 || uis.glconfig.vidHeight <= 0 )
+		return;
+
+	scale = uis.glconfig.vidHeight * ( 1.0f / SCREEN_HEIGHT );
+	if ( scale * SCREEN_WIDTH > uis.glconfig.vidWidth )
+		scale = uis.glconfig.vidWidth * ( 1.0f / SCREEN_WIDTH );	// taller than 4:3: letterbox instead
+
+	uis.scalex = uis.scaley = scale;
+	uis.xbias = 0.5f * ( uis.glconfig.vidWidth - scale * SCREEN_WIDTH );
+	uis.ybias = 0.5f * ( uis.glconfig.vidHeight - scale * SCREEN_HEIGHT );
+}
+
+/*
+================
 UI_AdjustFrom640
 
 Adjusted for resolution and screen aspect ratio
@@ -1476,11 +1515,10 @@ Adjusted for resolution and screen aspect ratio
 */
 void UI_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 	// expect valid pointers
-//	*x = *x * uis.scale + uis.bias;
-	*x *= uis.scalex;
-	*y *= uis.scaley;
 	*w *= uis.scalex;
 	*h *= uis.scaley;
+	*x = *x * uis.scalex + uis.xbias;
+	*y = *y * uis.scaley + uis.ybias;
 }
 
 
@@ -1588,11 +1626,14 @@ void UI_Refresh( int realtime )
 
 	if ( uis.activemenu )
 	{
+		// Both of these are the screen behind the menu rather than part of its
+		// layout, so they go edge to edge: the menu is 4:3 in the middle of the
+		// display, but dimming only that much leaves the game bright either side
+		// of it and the menu floating in a lit frame.
 		if (uis.activemenu->fullscreen)
 		{
 			// draw the background
-			ui.R_SetColor( colorTable[CT_BLACK]);
-			UI_DrawHandlePic(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, uis.whiteShader );
+			UI_FillScreen( colorTable[CT_BLACK] );
 		}
 		else
 		{
@@ -1602,8 +1643,7 @@ void UI_Refresh( int realtime )
 			color[2] = colorTable[CT_BLACK][1];
 			color[3] = .75;
 
-			ui.R_SetColor( color);
-			UI_DrawHandlePic(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, uis.whiteShader );
+			UI_FillScreen( color );
 		}
 
 		if ((uis.activemenu->openingStart) && (uis.activemenu->opening))

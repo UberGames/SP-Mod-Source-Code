@@ -133,7 +133,20 @@ static menuslider_s			s_video2_screensize_slider;
 static menuframework_s		s_video_menu;
 static menulist_s			s_video_mode_option_list;
 static menulist_s			s_video_driver_list;
-static menulist_s			s_video_extension_enable_list;
+static menulist_s			s_video_display_list;
+
+// The displays attached, as the engine reports them in r_displayList: one line
+// each, already reading "1 - DELL U2720Q" or "DISPLAY 1".  Built once when the
+// menu opens, because they cannot change while it is up.
+#define VIDEO_DISPLAY_MAX	8
+static char			s_videoDisplayLabels[VIDEO_DISPLAY_MAX][96];
+static const char	*s_videoDisplayNames[VIDEO_DISPLAY_MAX + 1];
+// What the row itself says.  The name goes in the list, where there is room
+// for it; the row has a narrow column and only has to say which display is
+// picked, not what it is called.
+static char			s_videoDisplayShortLabels[VIDEO_DISPLAY_MAX][16];
+static const char	*s_videoDisplayShortNames[VIDEO_DISPLAY_MAX + 1];
+static int			s_videoDisplayCount;
 static menulist_s			s_video_aspect_list;
 static qboolean				s_video_aspect_shown = qfalse;	// whether s_video_aspect_list was built into the menu; gates its hard-coded label draw
 static menulist_s			s_video_mode_list;
@@ -304,7 +317,7 @@ typedef struct
 	int geometry;
 	int filter;
 	int driver;
-	qboolean extensions;
+	int display;
 	int simpleshaders;
 	int compresstextures;
 } InitialVideoOptions_s;
@@ -315,19 +328,19 @@ static InitialVideoOptions_s s_ivo;
 static InitialVideoOptions_s s_ivo_templates[] =
 {
 	{
-		2, qtrue, 3, 0, 2, 2, 2, 1, 0, qtrue, 0, 0,	// JDC: this was tq 3
+		2, qtrue, 3, 0, 2, 2, 2, 1, 0, 0, 0, 0,	// JDC: this was tq 3
 	},
 	{
-		1, qtrue, 2, 0, 0, 0, 2, 0, 0, qtrue, 0, 0,
+		1, qtrue, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0,
 	},
 	{
-		0, qtrue, 1, 0, 1, 0, 0, 0, 0, qtrue, 0, 0,
+		0, qtrue, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0,
 	},
 	{
-		0, qtrue, 1, 1, 1, 0, 0, 0, 0, qtrue, 1, 0,
+		0, qtrue, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0,
 	},
 	{
-		1, qtrue, 1, 0, 0, 0, 1, 0, 0, qtrue, 0, 0,
+		1, qtrue, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0,
 	}
 };
 
@@ -347,7 +360,7 @@ static void GetInitialVideoVars( void )
 	// the list on every category change, so an index alone goes stale
 	s_ivo.mode = VideoModes_CurrentNumber();
 	s_ivo.fullscreen = s_video_fullscreen_list.curvalue;
-	s_ivo.extensions = s_video_extension_enable_list.curvalue;
+	s_ivo.display = s_video_display_list.curvalue;
 	s_ivo.tq = s_video_texture_quality_list.curvalue;
 //	s_ivo.lighting = s_video_lighting_list.curvalue;
 	s_ivo.geometry = s_video_geometry_list.curvalue;
@@ -401,6 +414,36 @@ static void CheckConfigVsTemplates( void )
 
 }
 
+// NATIVE heads the list and is not a shape: it means "whatever this display
+// already is", which is r_mode -2.  It belongs here rather than among the
+// resolutions because picking it is a decision about how to choose a size, not
+// a size - and once it is chosen there is nothing left for the resolution
+// control to decide, so that greys out and shows what it resolved to.
+#define VIDEO_ASPECT_NATIVE		0
+#define VIDEO_ASPECT_4_3		1
+#define VIDEO_ASPECT_16_9		2
+#define VIDEO_ASPECT_16_10		3
+#define VIDEO_ASPECT_ULTRAWIDE	4
+#define VIDEO_ASPECT_COUNT		5
+// Not a category: what VideoModes_Build is passed when it should not filter at
+// all.  ALL used to do this job as well as being an entry in the control, which
+// is why removing the entry needs something to take the other half over.
+#define VIDEO_ASPECT_ANY		(-1)
+
+static const char *s_videoAspectNames[VIDEO_ASPECT_COUNT + 1] =
+{
+	"NATIVE", "4:3", "16:9", "16:10", "ULTRAWIDE", NULL
+};
+
+// The ratio each category stands for, indexed from VIDEO_ASPECT_4_3 - NATIVE
+// has none, being a way of choosing rather than a shape.  Ultrawide is 21:9
+// nominally, but the family runs from 2.33 to 2.40 and 32:9 exists, so it is
+// the catch-all for anything wider than 16:9 rather than a point to match.
+static const float s_videoAspectRatios[VIDEO_ASPECT_COUNT - VIDEO_ASPECT_4_3] =
+{
+	4.0f/3.0f, 16.0f/9.0f, 16.0f/10.0f, 21.0f/9.0f
+};
+
 /*
 ===============
 UpdateMenuItemValues
@@ -420,6 +463,14 @@ static void UpdateMenuItemValues( void )
 		s_video_fullscreen_list.generic.flags &= ~QMF_GRAYED;
 	}
 
+	// NATIVE has already decided the resolution, so the control that would
+	// otherwise choose one greys out and shows what it resolved to.  It is left
+	// enabled for every other filter, where it is the whole point of the row.
+	if ( s_video_aspect_shown && s_video_aspect_list.curvalue == VIDEO_ASPECT_NATIVE )
+		s_video_mode_list.generic.flags |= QMF_GRAYED;
+	else
+		s_video_mode_list.generic.flags &= ~QMF_GRAYED;
+
 	if ( s_video_fullscreen_list.curvalue == 0 || s_video_driver_list.curvalue == 1 )
 	{
 		s_video_colordepth_list.curvalue = 0;
@@ -428,15 +479,6 @@ static void UpdateMenuItemValues( void )
 	else
 	{
 		s_video_colordepth_list.generic.flags &= ~QMF_GRAYED;
-	}
-
-	// If you change the extension enable, texture quality changes automatically
-	if ( s_video_extension_enable_list.curvalue == 0 )
-	{
-		if ( s_video_tq_bits_list.curvalue == 0 )
-		{
-			s_video_tq_bits_list.curvalue = 1;
-		}
 	}
 
 	s_video_apply_action.generic.flags |= QMF_GRAYED;
@@ -468,10 +510,10 @@ static void UpdateMenuItemValues( void )
 		s_video_apply_action.generic.flags |= QMF_BLINK;
 	}
 
-	s_video_extension_enable_list.updated = 0;
-	if ( s_ivo.extensions != s_video_extension_enable_list.curvalue )
+	s_video_display_list.updated = 0;
+	if ( s_ivo.display != s_video_display_list.curvalue )
 	{
-		s_video_extension_enable_list.updated = 1;
+		s_video_display_list.updated = 1;
 		s_video_apply_action.generic.flags &= ~QMF_GRAYED;
 		s_video_apply_action.generic.flags |= QMF_BLINK;
 	}
@@ -558,8 +600,13 @@ static void UpdateMenuItemValues( void )
 // new sizes need no menu text data.  There is no DESKTOP entry: r_mode -2
 // remains settable from the console, it just has no menu representation.
 // An engine without the cvar keeps the fixed MNT_ list.
-#define VIDEO_MODE_FIRST	2
-#define VIDEO_MODE_MAX		40
+// Nothing is skipped any more: the two modes this used to hide, 320x240 and
+// 400x300, are gone from the engine's table altogether.  Left at 2 it hid
+// 640x480 and 800x600 instead.
+#define VIDEO_MODE_FIRST	0
+// The table plus whatever the display adds - an ultrawide reports twenty-odd
+// sizes of its own, and at 40 the tail of that was being dropped.
+#define VIDEO_MODE_MAX		80
 static char			s_videoModeLabels[VIDEO_MODE_MAX][16];
 static const char	*s_videoModeNames[VIDEO_MODE_MAX + 2];
 static int			s_videoModeCount;		// entries in the list, 0 when the engine has no r_modeList
@@ -567,32 +614,88 @@ static int			s_videoModeNumbers[VIDEO_MODE_MAX];	// r_mode value for each visibl
 static int			s_videoModeWidths[VIDEO_MODE_MAX];	// and its size, for matching across a filter change
 static int			s_videoModeHeights[VIDEO_MODE_MAX];
 
-// aspect categories, in the order they appear in the control
-#define VIDEO_ASPECT_ALL	0
-#define VIDEO_ASPECT_4_3	1
-#define VIDEO_ASPECT_5_4	2
-#define VIDEO_ASPECT_16_10	3
-#define VIDEO_ASPECT_16_9	4
-#define VIDEO_ASPECT_COUNT	5
-
-static const char *s_videoAspectNames[VIDEO_ASPECT_COUNT + 1] =
-{
-	"ALL", "4:3", "5:4", "16:10", "16:9", NULL
-};
+// Aspect categories, in the order they appear in the control.  There is no ALL
+// any more: a list of every size the machine will take is the thing the filter
+// exists to avoid, and with the table trimmed to sizes a real panel has there
+// is nothing left that only ALL could show.
 
 /*
-Which category a mode belongs to.  Within 0.02 of a ratio counts, which puts
-856x480 (1.783) in 16:9; anything matching nothing appears only under ALL.
+Which category a mode belongs to.  Every mode gets one: without an ALL to fall
+into, a size that matched nothing exactly would be in the table and reachable
+from no filter at all, so the nearest ratio takes it.  That puts a MacBook's
+3024x1964 (1.540, which is nothing) under 16:10, and 1280x1024 (1.250, the only
+5:4 size anyone ever made) under 4:3, which is the nearest thing to both.
 */
 static int VideoModes_Category( int w, int h )
 {
-	float ratio = h ? (float)w / (float)h : 0.0f;
+	float	ratio = h ? (float)w / (float)h : 0.0f;
+	int		i, best = VIDEO_ASPECT_4_3;
+	float	bestDist = 1000.0f;
 
-	if ( fabs( ratio - (4.0f/3.0f) ) < 0.02f )	return VIDEO_ASPECT_4_3;
-	if ( fabs( ratio - (5.0f/4.0f) ) < 0.02f )	return VIDEO_ASPECT_5_4;
-	if ( fabs( ratio - (16.0f/10.0f) ) < 0.02f )	return VIDEO_ASPECT_16_10;
-	if ( fabs( ratio - (16.0f/9.0f) ) < 0.02f )	return VIDEO_ASPECT_16_9;
-	return VIDEO_ASPECT_ALL;
+	if ( ratio > s_videoAspectRatios[VIDEO_ASPECT_16_9 - VIDEO_ASPECT_4_3] + 0.05f )
+		return VIDEO_ASPECT_ULTRAWIDE;
+
+	// from 4:3 up: NATIVE is never something a size falls into
+	for ( i = VIDEO_ASPECT_4_3; i < VIDEO_ASPECT_COUNT; i++ )
+	{
+		float dist = (float)fabs( ratio - s_videoAspectRatios[i - VIDEO_ASPECT_4_3] );
+
+		if ( dist < bestDist )
+		{
+			bestDist = dist;
+			best = i;
+		}
+	}
+
+	return best;
+}
+
+/*
+Largest first.  r_modeList comes out in the engine's table order, which is
+roughly ascending and then stops being anything at all once the sizes the
+display reported itself are appended on the end - so 1344x1008 landed after
+2048x1536.  Sorted on pixel count, with the wider breaking a tie, the list
+reads as a list rather than as a table plus leftovers.
+
+The five arrays are parallel and have to move together; the names are pointers
+into the labels, so they are repointed by position once the rest have settled.
+*/
+static void VideoModes_SortDescending( int count )
+{
+	int i, j;
+
+	for ( i = 1; i < count; i++ )
+	{
+		char	label[16];
+		int		number = s_videoModeNumbers[i];
+		int		w = s_videoModeWidths[i];
+		int		h = s_videoModeHeights[i];
+
+		Q_strncpyz( label, s_videoModeLabels[i], sizeof( label ) );
+
+		for ( j = i; j > 0; j-- )
+		{
+			int prevW = s_videoModeWidths[j - 1];
+			int prevH = s_videoModeHeights[j - 1];
+
+			if ( prevW * prevH > w * h || ( prevW * prevH == w * h && prevW >= w ) )
+				break;
+
+			Q_strncpyz( s_videoModeLabels[j], s_videoModeLabels[j - 1],
+						sizeof( s_videoModeLabels[0] ) );
+			s_videoModeNumbers[j] = s_videoModeNumbers[j - 1];
+			s_videoModeWidths[j] = prevW;
+			s_videoModeHeights[j] = prevH;
+		}
+
+		Q_strncpyz( s_videoModeLabels[j], label, sizeof( s_videoModeLabels[0] ) );
+		s_videoModeNumbers[j] = number;
+		s_videoModeWidths[j] = w;
+		s_videoModeHeights[j] = h;
+	}
+
+	for ( i = 0; i < count; i++ )
+		s_videoModeNames[i] = s_videoModeLabels[i];
 }
 
 static int VideoModes_Build( int category, int currentMode )
@@ -600,6 +703,29 @@ static int VideoModes_Build( int category, int currentMode )
 	char	list[1024];
 	char	*p;
 	int		mode = 0, n = 0;
+
+	// NATIVE is one entry, and it is not in r_modeList: it is r_mode -2, whose
+	// size the engine reports separately because only the engine knows which
+	// display the window is on.  The list still has an entry rather than being
+	// empty, so the control shows the size it resolved to instead of a blank.
+	if ( category == VIDEO_ASPECT_NATIVE )
+	{
+		int w = 0, h = 0;
+
+		ui.Cvar_VariableStringBuffer( "r_desktopMode", list, sizeof( list ) );
+		sscanf( list, "%dx%d", &w, &h );
+
+		Q_strncpyz( s_videoModeLabels[0], ( w && h ) ? list : "NATIVE",
+					sizeof( s_videoModeLabels[0] ) );
+		Q_strupr( s_videoModeLabels[0] );
+		s_videoModeNames[0] = s_videoModeLabels[0];
+		s_videoModeNumbers[0] = -2;
+		s_videoModeWidths[0] = w;
+		s_videoModeHeights[0] = h;
+		s_videoModeNames[1] = NULL;
+		s_videoModeCount = 1;
+		return 1;
+	}
 
 	ui.Cvar_VariableStringBuffer( "r_modeList", list, sizeof( list ) );
 	for ( p = list; *p && n < VIDEO_MODE_MAX; mode++ )
@@ -613,7 +739,7 @@ static int VideoModes_Build( int category, int currentMode )
 			continue;
 
 		sscanf( tok, "%dx%d", &w, &h );
-		if ( category != VIDEO_ASPECT_ALL && VideoModes_Category( w, h ) != category && mode != currentMode )
+		if ( category != VIDEO_ASPECT_ANY && VideoModes_Category( w, h ) != category && mode != currentMode )
 			continue;
 
 		Q_strncpyz( s_videoModeLabels[n], tok, sizeof( s_videoModeLabels[n] ) );
@@ -624,6 +750,7 @@ static int VideoModes_Build( int category, int currentMode )
 		s_videoModeHeights[n] = h;
 		n++;
 	}
+	VideoModes_SortDescending( n );
 	s_videoModeNames[n] = NULL;
 	s_videoModeCount = n;
 	return n;
@@ -755,7 +882,7 @@ GetVideoMenuItemValues
 */
 static void GetVideoMenuItemValues( void )
 {
-	if ( s_videoModeCount || VideoModes_Build( VIDEO_ASPECT_ALL, -1 ) )
+	if ( s_videoModeCount || VideoModes_Build( VIDEO_ASPECT_ANY, -1 ) )
 	{
 		int mode = ui.Cvar_VariableValue( "r_mode" );
 		int w = 0, h = 0, i;
@@ -771,7 +898,8 @@ static void GetVideoMenuItemValues( void )
 			if ( i == mode ) { sscanf( tok, "%dx%d", &w, &h ); break; }
 		}
 
-		s_video_aspect_list.curvalue = ( mode == -2 ) ? VIDEO_ASPECT_ALL : VideoModes_Category( w, h );
+		s_video_aspect_list.curvalue = ( mode == -2 )
+			? VIDEO_ASPECT_NATIVE : VideoModes_Category( w, h );
 		VideoModes_SelectCurrent( s_video_aspect_list.curvalue, mode );
 	}
 	else
@@ -785,7 +913,15 @@ static void GetVideoMenuItemValues( void )
 	}
 
 	s_video_fullscreen_list.curvalue = ui.Cvar_VariableValue("r_fullscreen");
-	s_video_extension_enable_list.curvalue = ui.Cvar_VariableValue("r_allowExtensions");
+	// r_displayIndex is -1 for "wherever it was", which the menu shows as the
+	// display the window is actually on rather than as an entry of its own.
+	{
+		int display = (int)ui.Cvar_VariableValue( "r_displayIndex" );
+
+		if ( display < 0 || display >= s_videoDisplayCount )
+			display = 0;
+		s_video_display_list.curvalue = display;
+	}
 	s_video_simpleshaders_list.curvalue = ui.Cvar_VariableValue("r_lowEndVideo");
 	s_video_compresstextures.curvalue = ui.Cvar_VariableValue("r_ext_compress_textures");
 
@@ -998,10 +1134,10 @@ static void TextureQualityCallback( void *s, int notification )
 
 /*
 ===============
-ExtensionsCallback
+DisplayCallback
 ===============
 */
-static void ExtensionsCallback( void *s, int notification )
+static void DisplayCallback( void *s, int notification )
 {
 }
 
@@ -1065,7 +1201,11 @@ static void ApplyChanges( void *unused, int notification )
 	ui.Cvar_SetValue( "r_picmip", 3 - s_video_texture_quality_list.curvalue );
 	
 	// Allow Extensions
-	ui.Cvar_SetValue( "r_allowExtensions", s_video_extension_enable_list.curvalue );
+	ui.Cvar_SetValue( "r_displayIndex", s_video_display_list.curvalue );
+	// GL EXTENSIONS was this row, and turning them off was a 1999 way of working
+	// around a broken driver.  There is no way back to it from the menu now, so
+	// make sure nobody is left stuck behind it.
+	ui.Cvar_SetValue( "r_allowExtensions", 1 );
 	
 	ui.Cvar_SetValue( "r_lowEndVideo", s_video_simpleshaders_list.curvalue );
 
@@ -1086,8 +1226,9 @@ static void ApplyChanges( void *unused, int notification )
 		ui.Cvar_SetValue( "r_mode", s_videoModeNumbers[s_video_mode_list.curvalue] );
 	}
 	else
-		// Adding 2 because we don't show 320x200 and MNT_400X300
-		ui.Cvar_SetValue( "r_mode", (s_video_mode_list.curvalue +2) );
+		// Only reached when the engine gave no r_modeList at all.  No offset:
+		// the two modes that used to be hidden are gone from the table.
+		ui.Cvar_SetValue( "r_mode", s_video_mode_list.curvalue );
 
 	// Fullscreen Setting
 	ui.Cvar_SetValue( "r_fullscreen", s_video_fullscreen_list.curvalue );
@@ -1304,34 +1445,84 @@ void M_VideoDataMenu_Graphics (void)
 
 /*
 =================
-VideoData_DrawAspectLabel
+VideoData_BuildDisplayList
 
-ASPECT RATIO has no spare MBT_ enum / text-asset entry (see
-s_video_aspect_list.textEnum), so its label is drawn here by hand rather than
-by the engine's own enum-driven label draw.  It has to run after Menu_Draw,
-not before it: SpinControl_Draw paints the control's button caps and middle
-bar over these exact coordinates, so anything drawn earlier (this used to
-live in M_VideoDataMenu_Graphics, called before Menu_Draw) is immediately
-painted over and never visible.  Colour matches SpinControl_Draw's own
-focus/unfocused split, so this is the only label on the menu that would
-otherwise fail to light up when focused once drawn on top instead of under.
-Not localised - unlike the enum-driven labels, which have _deutsch/_francais
-variants, this string is English-only.
+Splits r_displayList, which the engine fills with one ready-made label per
+attached display.  Nothing here has to know what a display is called or how to
+phrase it; the engine knows both the index and the name SDL gave it, so it does
+the phrasing and this only has to break the lines apart.
 =================
 */
-static void VideoData_DrawAspectLabel( void )
+static void VideoData_BuildDisplayList( void )
+{
+	char	list[1024];
+	char	*p, *end;
+
+	s_videoDisplayCount = 0;
+	ui.Cvar_VariableStringBuffer( "r_displayList", list, sizeof( list ) );
+
+	for ( p = list; *p && s_videoDisplayCount < VIDEO_DISPLAY_MAX; p = end )
+	{
+		end = strchr( p, '\n' );
+		if ( end )
+			*end++ = '\0';
+		else
+			end = p + strlen( p );
+
+		if ( !*p )
+			continue;
+
+		Q_strncpyz( s_videoDisplayLabels[s_videoDisplayCount], p,
+					sizeof( s_videoDisplayLabels[0] ) );
+		s_videoDisplayNames[s_videoDisplayCount] = s_videoDisplayLabels[s_videoDisplayCount];
+
+		Com_sprintf( s_videoDisplayShortLabels[s_videoDisplayCount],
+					 sizeof( s_videoDisplayShortLabels[0] ), "DISPLAY %d",
+					 s_videoDisplayCount + 1 );
+		s_videoDisplayShortNames[s_videoDisplayCount] =
+			s_videoDisplayShortLabels[s_videoDisplayCount];
+
+		s_videoDisplayCount++;
+	}
+
+	s_videoDisplayNames[s_videoDisplayCount] = NULL;
+	s_videoDisplayShortNames[s_videoDisplayCount] = NULL;
+}
+
+/*
+=================
+VideoData_DrawLabel
+
+Draws a spin control's label by hand, for the controls whose text the menu's
+own enum-driven draw cannot supply.  The MBT_ indices are fixed by the string
+files inside the retail pk3s, so a row whose name is not already in there - or
+whose name we want to change - has no enum to point at and carries MBT_NONE
+instead.
+
+It has to run after Menu_Draw, not before it: SpinControl_Draw paints the
+control's button caps and middle bar over these exact coordinates, so anything
+drawn earlier (this used to live in M_VideoDataMenu_Graphics, called before
+Menu_Draw) is immediately painted over and never visible.  The colour follows
+SpinControl_Draw's own focus split, or these would be the only labels on the
+menu that failed to light up when focused.
+
+Not localised - unlike the enum-driven labels, which have _deutsch/_francais
+variants, these strings are English-only.
+=================
+*/
+static void VideoData_DrawLabel( menulist_s *ctl, const char *text )
 {
 	int color;
 
-	if ( !s_video_aspect_shown )
+	if ( ctl->generic.flags & QMF_HIDDEN )
 		return;
 
-	color = ( Menu_ItemAtCursor( &s_video_menu ) == (void *)&s_video_aspect_list )
-		? s_video_aspect_list.textcolor2 : s_video_aspect_list.textcolor;
+	color = ( Menu_ItemAtCursor( &s_video_menu ) == (void *)ctl )
+		? ctl->textcolor2 : ctl->textcolor;
 
-	UI_DrawProportionalString( s_video_aspect_list.generic.x + s_video_aspect_list.textX,
-		s_video_aspect_list.generic.y + s_video_aspect_list.textY,
-		"ASPECT RATIO", UI_LEFT | UI_SMALLFONT, colorTable[color] );
+	UI_DrawProportionalString( ctl->generic.x + ctl->textX,
+		ctl->generic.y + ctl->textY,
+		text, UI_LEFT | UI_SMALLFONT, colorTable[color] );
 }
 
 /*
@@ -1347,7 +1538,10 @@ static void VideoData_MenuDraw (void)
 
 	Menu_Draw( &s_video_menu );
 
-	VideoData_DrawAspectLabel();
+	VideoData_DrawLabel( &s_video_display_list, "OUTPUT DISPLAY" );
+	if ( s_video_aspect_shown )
+		VideoData_DrawLabel( &s_video_aspect_list, "ASPECT RATIO" );
+	VideoData_DrawLabel( &s_video_mode_list, "RESOLUTION" );
 }
 
 /*
@@ -1416,6 +1610,8 @@ Video_MenuInit
 */
 static void VideoData_MenuInit( void )
 {
+	VideoData_BuildDisplayList();
+
 	int x,y,width,inc;
 
 	UI_VideoDataMenu_Cache();
@@ -1535,7 +1731,7 @@ static void VideoData_MenuInit( void )
 	// other choice is the 3dfx MiniGL driver and no build that gets this far
 	// can load one - and curvalue is still initialised below, so ApplyChanges
 	// goes on writing r_glDriver for the driver actually in use.
-	if ( VideoModes_Build( VIDEO_ASPECT_ALL, -1 ) )
+	if ( VideoModes_Build( VIDEO_ASPECT_ANY, -1 ) )
 		s_video_aspect_shown = qtrue;
 	else
 		s_video_aspect_shown = qfalse;
@@ -1575,20 +1771,29 @@ static void VideoData_MenuInit( void )
 	}
 
 	y += inc;
-	s_video_extension_enable_list.generic.type		= MTYPE_SPINCONTROL;
-	s_video_extension_enable_list.generic.flags		= QMF_HIGHLIGHT_IF_FOCUS;
-	s_video_extension_enable_list.generic.x			= x;
-	s_video_extension_enable_list.generic.y			= y;
-	s_video_extension_enable_list.generic.callback	= ExtensionsCallback;
-	s_video_extension_enable_list.textEnum			= MBT_VIDEOGLEXTENTIONS;
-	s_video_extension_enable_list.textcolor			= CT_BLACK;
-	s_video_extension_enable_list.textcolor2		= CT_WHITE;
-	s_video_extension_enable_list.color				= CT_DKPURPLE1;
-	s_video_extension_enable_list.color2			= CT_LTPURPLE1;
-	s_video_extension_enable_list.textX				= 5;
-	s_video_extension_enable_list.textY				= 2;
-	s_video_extension_enable_list.listnames			= s_enable_Names;
-	s_video_extension_enable_list.width				= width;
+	s_video_display_list.generic.type				= MTYPE_SPINCONTROL;
+	s_video_display_list.generic.flags				= QMF_HIGHLIGHT_IF_FOCUS;
+	s_video_display_list.generic.x					= x;
+	s_video_display_list.generic.y					= y;
+	s_video_display_list.generic.callback			= DisplayCallback;
+	s_video_display_list.textEnum					= MBT_NONE;	// label drawn by VideoData_DrawLabel
+	s_video_display_list.textcolor					= CT_BLACK;
+	s_video_display_list.textcolor2					= CT_WHITE;
+	s_video_display_list.color						= CT_DKPURPLE1;
+	s_video_display_list.color2						= CT_LTPURPLE1;
+	s_video_display_list.textX						= 5;
+	s_video_display_list.textY						= 2;
+	s_video_display_list.itemnames					= s_videoDisplayNames;
+	s_video_display_list.shortnames					= s_videoDisplayShortNames;
+	s_video_display_list.listnames					= NULL;
+	s_video_display_list.width						= width;
+	// One display is not a choice, but it is still worth saying which one you
+	// are on - the row greys out the way COLOR DEPTH does when the mode makes it
+	// irrelevant, so it reads as information rather than as something that will
+	// do anything if you press it.  It keeps its row either way, so the panel
+	// does not reflow depending on what is plugged in.
+	if ( s_videoDisplayCount < 2 )
+		s_video_display_list.generic.flags |= QMF_GRAYED;
 
 	// filters the resolution list below by aspect ratio
 	if ( s_video_aspect_shown )
@@ -1618,14 +1823,14 @@ static void VideoData_MenuInit( void )
 	s_video_mode_list.generic.x						= x;
 	s_video_mode_list.generic.y						= y;
 	s_video_mode_list.generic.callback				= ModeCallback;
-	s_video_mode_list.textEnum						= MBT_VIDEOMODE;
+	s_video_mode_list.textEnum						= MBT_NONE;	// label drawn by VideoData_DrawLabel
 	s_video_mode_list.textcolor						= CT_BLACK;
 	s_video_mode_list.textcolor2					= CT_WHITE;
 	s_video_mode_list.color							= CT_DKPURPLE1;
 	s_video_mode_list.color2						= CT_LTPURPLE1;
 	s_video_mode_list.textX							= 5;
 	s_video_mode_list.textY							= 2;
-	if ( VideoModes_Build( VIDEO_ASPECT_ALL, -1 ) )
+	if ( VideoModes_Build( VIDEO_ASPECT_ANY, -1 ) )
 	{
 		s_video_mode_list.itemnames					= s_videoModeNames;
 		s_video_mode_list.listnames					= NULL;
@@ -1805,7 +2010,7 @@ static void VideoData_MenuInit( void )
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_mode_option_list);
 	if ( !s_video_aspect_shown )
 		Menu_AddItem( &s_video_menu, ( void * )&s_video_driver_list);
-	Menu_AddItem( &s_video_menu, ( void * )&s_video_extension_enable_list);
+	Menu_AddItem( &s_video_menu, ( void * )&s_video_display_list);
 	if ( s_video_aspect_shown )
 		Menu_AddItem( &s_video_menu, ( void * )&s_video_aspect_list);
 	Menu_AddItem( &s_video_menu, ( void * )&s_video_mode_list);

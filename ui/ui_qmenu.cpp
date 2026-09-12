@@ -671,6 +671,7 @@ static sfxHandle_t SpinControl_Key( menulist_s *l, int key );
 static sfxHandle_t SpinControl_InitListRender( menulist_s *s, qboolean *chose );
 static int	SpinControl_ListIndexAtCursor( menulist_s *s );
 static const char *SpinControl_ItemName( menulist_s *s, int index );
+static const char *SpinControl_ValueName( menulist_s *s, int index );
 
 // bitmap widget
 static void Bitmap_Init( menubitmap_s *b );
@@ -2056,6 +2057,22 @@ static const char *SpinControl_ItemName( menulist_s *s, int index )
 
 /*
 ===============
+SpinControl_ValueName
+
+The same, but for the value drawn in the control's own row while the list is
+closed - which a control may want shorter than the entry the list shows.
+===============
+*/
+static const char *SpinControl_ValueName( menulist_s *s, int index )
+{
+	if ( !s->listnames && s->shortnames && s->shortnames[index] )
+		return s->shortnames[index];
+
+	return SpinControl_ItemName( s, index );
+}
+
+/*
+===============
 SpinControl_ListIndexAtCursor
 
 Returns the item an open spin list's cursor sits over, clamped to something
@@ -2419,7 +2436,7 @@ void SpinControl_Draw( menulist_s *s )
 	// anything above zero has a name at curvalue to print.
 	if ( s->numitems > 0 )
 	{
-		const char *value = SpinControl_ItemName( s, s->curvalue );
+		const char *value = SpinControl_ValueName( s, s->curvalue );
 
 		if ( !strchr( value, '\n' ) )
 		{

@@ -668,8 +668,9 @@ static void	Slider_Draw( menuslider_s *s );
 static void	SpinControl_Init( menulist_s *s );
 static void	SpinControl_Draw( menulist_s *s );
 static sfxHandle_t SpinControl_Key( menulist_s *l, int key );
-static sfxHandle_t SpinControl_InitListRender( menulist_s *s );
+static sfxHandle_t SpinControl_InitListRender( menulist_s *s, qboolean *chose );
 static int	SpinControl_ListIndexAtCursor( menulist_s *s );
+static const char *SpinControl_ItemName( menulist_s *s, int index );
 
 // bitmap widget
 static void Bitmap_Init( menubitmap_s *b );
@@ -2038,18 +2039,41 @@ void SpinControl_Init( menulist_s *s )
 
 /*
 ===============
+SpinControl_ItemName
+
+A spin control names its choices one of two ways - an index into the
+translated menu text, or its own array of strings.  Every place that needs
+the text of choice n wants the same three lines, so they live here.
+===============
+*/
+static const char *SpinControl_ItemName( menulist_s *s, int index )
+{
+	if ( s->listnames )
+		return menu_normal_text[s->listnames[index]];
+
+	return s->itemnames[index];
+}
+
+/*
+===============
 SpinControl_ListIndexAtCursor
 
-Returns the row of an open spin list that the cursor currently sits over,
-clamped to a valid item index. Shared by SpinControl_InitListRender (to
-decide what a click selects) and Menu_Draw (to decide what to highlight),
-so the two stay in sync.
+Returns the item an open spin list's cursor sits over, clamped to something
+valid.  Shared by SpinControl_InitListRender (to decide what a click selects)
+and Menu_Draw (to decide what to highlight), so the two stay in sync.
 ===============
 */
 static int SpinControl_ListIndexAtCursor( menulist_s *s )
 {
-	int index = ( uis.cursory - s->drawList.up + 1 ) / SMALLCHAR_HEIGHT;
+	int row = ( uis.cursory - s->drawList.up ) / SPINLIST_ROW_H;
+	int index;
 
+	if ( row < 0 )
+		row = 0;
+	if ( row >= s->drawList.rows )
+		row = s->drawList.rows - 1;
+
+	index = s->drawList.top + row;
 	if ( index < 0 )
 		index = 0;
 	if ( index >= s->numitems )
@@ -2060,97 +2084,178 @@ static int SpinControl_ListIndexAtCursor( menulist_s *s )
 
 /*
 ===============
+SpinControl_HoveredRow
+
+The item the cursor is over, or -1 when it is not over the rows at all.  Both
+the draw and the mouse handler ask this, so the bar that appears under a row
+and the sound that plays when you arrive on it cannot disagree about which row
+that is.
+===============
+*/
+static int SpinControl_HoveredRow( menulist_s *s )
+{
+	drawList_t *d = &s->drawList;
+
+	if ( !UI_CursorInRect( d->left, d->up, d->right - d->left, d->down - d->up ) )
+		return -1;
+
+	return SpinControl_ListIndexAtCursor( s );
+}
+
+/*
+===============
+SpinControl_ScrollIntoView
+
+Keeps the current value on screen.  The arrow keys still change the value
+while the list is open, and a value that has scrolled out from under the
+cursor is a list that has stopped saying what it is for.
+===============
+*/
+static void SpinControl_ScrollIntoView( menulist_s *s )
+{
+	drawList_t	*d = &s->drawList;
+
+	if ( s->curvalue < d->top )
+		d->top = s->curvalue;
+	else if ( s->curvalue >= d->top + d->rows )
+		d->top = s->curvalue - d->rows + 1;
+
+	if ( d->top > s->numitems - d->rows )
+		d->top = s->numitems - d->rows;
+	if ( d->top < 0 )
+		d->top = 0;
+}
+
+/*
+===============
+SpinControl_LayoutList
+
+Works out where every part of the open list goes, once, when it opens.  The
+draw and the click both read this rather than each deriving it, because the
+two disagreeing means clicking one row and getting another.
+
+The box is the framed list RPG-X2 uses for its character roster: rules along
+the top and down the left meeting in a corner, the choices as plain text on
+black, a scroll column where the right-hand rule would be, and a footer bar
+deep enough to carry a button.
+===============
+*/
+static void SpinControl_LayoutList( menulist_s *s )
+{
+	drawList_t	*d = &s->drawList;
+	int			i, w, contentW, boxW, boxH;
+
+	memset( d, 0, sizeof( *d ) );
+	d->hovered = -1;		// nothing yet, so arriving anywhere is a move
+
+	d->rows = ( s->numitems < SPINLIST_ROWS_MAX ) ? s->numitems : SPINLIST_ROWS_MAX;
+
+	// wide enough for the longest choice...
+	contentW = 0;
+	for ( i = 0; i < s->numitems; i++ )
+	{
+		w = UI_ProportionalStringWidth( SpinControl_ItemName( s, i ), UI_SMALLFONT );
+		if ( w > contentW )
+			contentW = w;
+	}
+
+	boxW = SPINLIST_RULE_L + SPINLIST_INSET + contentW + SPINLIST_INSET + SPINLIST_RULE;
+
+	boxH = SPINLIST_RULE + SPINLIST_HALO + d->rows * SPINLIST_ROW_H + SPINLIST_RULE;
+
+	// It stands clear of the column of buttons rather than over it: the pill
+	// runs from generic.x to that plus its bar and both caps, and the box starts
+	// a gutter past where the pill stops.  Its first row lines up with the row
+	// of the control that opened it, so the box reads as belonging to that one
+	// rather than floating beside the list of them.
+	d->boxLeft	= s->generic.x + s->width + MENU_BUTTON_MED_HEIGHT * 2 - 16
+				  + SPINLIST_GUTTER;
+	d->boxTop	= s->generic.y + s->textY - SPINLIST_RULE - SPINLIST_HALO;
+
+	// It stops at its longest choice rather than filling the panel: a box no
+	// bigger than it has to be reads as a popup hanging off the control, where
+	// one stretched to the panel's edge reads as another window.  The panel's
+	// edge is only a cap, so a long choice cannot push it out over the rest of
+	// the menu.
+	if ( s->generic.parent->spinListRight
+		 && d->boxLeft + boxW > s->generic.parent->spinListRight )
+		boxW = s->generic.parent->spinListRight - d->boxLeft;
+
+	// Pull it back onto the screen rather than letting an edge cut it off.  It
+	// moves as one piece: the rows keep their offsets inside the box.
+	if ( d->boxLeft + boxW > SCREEN_WIDTH - SPINLIST_MARGIN )
+		d->boxLeft = SCREEN_WIDTH - SPINLIST_MARGIN - boxW;
+	if ( d->boxLeft < SPINLIST_MARGIN )
+		d->boxLeft = SPINLIST_MARGIN;
+	if ( d->boxTop + boxH > SCREEN_HEIGHT - SPINLIST_MARGIN )
+		d->boxTop = SCREEN_HEIGHT - SPINLIST_MARGIN - boxH;
+	if ( d->boxTop < SPINLIST_MARGIN )
+		d->boxTop = SPINLIST_MARGIN;
+
+	d->boxRight		= d->boxLeft + boxW;
+	d->boxBottom	= d->boxTop + boxH;
+
+	d->left		= d->boxLeft + SPINLIST_RULE_L + SPINLIST_INSET;
+	d->up		= d->boxTop + SPINLIST_RULE + SPINLIST_HALO;
+	d->right	= d->boxRight - SPINLIST_RULE - SPINLIST_INSET;
+	d->down		= d->up + d->rows * SPINLIST_ROW_H;
+
+	SpinControl_ScrollIntoView( s );
+}
+
+
+
+/*
+===============
 SpinControl_InitListRender
 
 Opens the control's options as a list drawn over the menu, or - if one is
-already open - selects whatever the cursor is over.  Adapted from RPG-X2.
+already open - acts on wherever the cursor is.  Adapted from RPG-X2.
+
+`chose` comes back true only when a value was actually picked, which is what
+decides whether the control's callback fires.  Opening the list, working the
+scroll arrows and pressing the footer button all leave the value alone.
 ===============
 */
-static sfxHandle_t SpinControl_InitListRender( menulist_s *s )
+static sfxHandle_t SpinControl_InitListRender( menulist_s *s, qboolean *chose )
 {
-	int		bestWidth = 0;
-	int		widthOffset, heightOffset;
-	int		i;
+	drawList_t	*d = &s->drawList;
+
+	*chose = qfalse;
 
 	if ( !s->generic.parent->displaySpinList )
 	{
 		if ( !(s->generic.flags & QMF_HASMOUSEFOCUS) )
 			return 0;
 
-		memset( &s->drawList, 0, sizeof( drawList_t ) );
-
-		for ( i = 0; i < s->numitems; i++ )
-		{
-			const char *text = s->listnames ? menu_normal_text[s->listnames[i]] : s->itemnames[i];
-			int width = UI_ProportionalStringWidth( text, UI_SMALLFONT );
-			if ( width > bestWidth )
-				bestWidth = width;
-		}
-
-		if ( !s->listX && !s->listY )
-		{
-			widthOffset = s->width ? s->width : MENU_BUTTON_MED_WIDTH;
-			widthOffset = MENU_BUTTON_MED_HEIGHT + widthOffset - 8 + MENU_BUTTON_MED_HEIGHT + 2;
-			heightOffset = s->textY;
-		}
-		else
-		{
-			widthOffset = s->listX;
-			heightOffset = s->listY;
-		}
-
-		s->drawList.left  = s->generic.x + widthOffset - 2;
-		s->drawList.up    = s->generic.y + heightOffset - 2;
-		s->drawList.right = s->drawList.left + bestWidth + 4;
-		s->drawList.down  = s->drawList.up + ( SMALLCHAR_HEIGHT * s->numitems ) + 3;
-
-		// sit the list a third of its height higher than the control
-		heightOffset = (int)( (float)( s->drawList.down - s->drawList.up ) * 0.33f );
-		s->drawList.up -= heightOffset;
-		s->drawList.down -= heightOffset;
-
-		// and keep it on the screen
-		if ( s->drawList.right > SCREEN_WIDTH )
-		{
-			s->drawList.xOffset = s->drawList.right - SCREEN_WIDTH + 6;
-			s->drawList.left -= s->drawList.xOffset;
-			s->drawList.right -= s->drawList.xOffset;
-		}
-		if ( s->drawList.down > SCREEN_HEIGHT )
-		{
-			s->drawList.yOffset = s->drawList.down - SCREEN_HEIGHT + 6;
-			s->drawList.up -= s->drawList.yOffset;
-			s->drawList.down -= s->drawList.yOffset;
-		}
-		if ( s->drawList.up < 0 )
-		{
-			s->drawList.yOffset = -s->drawList.up;
-			s->drawList.up += s->drawList.yOffset;
-			s->drawList.down += s->drawList.yOffset;
-		}
-		if ( s->drawList.left < 0 )
-		{
-			s->drawList.xOffset = -s->drawList.left;
-			s->drawList.left += s->drawList.xOffset;
-			s->drawList.right += s->drawList.xOffset;
-		}
+		SpinControl_LayoutList( s );
 
 		s->generic.parent->displaySpinList = s;
 		s->generic.parent->noNewSelecting = qtrue;
-		return menu_move_sound;
+		// the sound a new screen makes, not the one a button makes under the
+		// cursor: a list opening over the menu is a change of place
+		return menu_in_sound;
 	}
 
-	// a list is open: a click inside it selects, anywhere else closes
-	if ( UI_CursorInRect( s->drawList.left, s->drawList.up,
-						  s->drawList.right - s->drawList.left,
-						  s->drawList.down - s->drawList.up ) )
+	// a row, which chooses and closes
+	if ( UI_CursorInRect( d->left, d->up, d->right - d->left, d->down - d->up ) )
 	{
 		s->curvalue = SpinControl_ListIndexAtCursor( s );
+		*chose = qtrue;
+		Menu_CloseSpinList( s->generic.parent );
+		return menu_in_sound;
 	}
 
-	s->generic.parent->displaySpinList = NULL;
-	s->generic.parent->noNewSelecting = qfalse;
-	return menu_move_sound;
+	// anywhere else on the frame is neither: the rules, the track and the run of
+	// footer past the button are decoration, and clicking decoration should not
+	// throw away the list you have open
+	if ( UI_CursorInRect( d->boxLeft, d->boxTop,
+						  d->boxRight - d->boxLeft, d->boxBottom - d->boxTop ) )
+		return 0;
+
+	// clear of the box altogether: dismissed
+	Menu_CloseSpinList( s->generic.parent );
+	return menu_in_sound;
 }
 
 /*
@@ -2162,9 +2267,34 @@ static sfxHandle_t SpinControl_Key( menulist_s *s, int key )
 {
 	sfxHandle_t sound;
 	qboolean	suppressCallback;
+	qboolean	chose;
 
 	sound = NULL;
 	suppressCallback = qfalse;
+
+	// the wheel scrolls the open list and nothing else - no value changes, so
+	// there is no callback to fire and no reason to let it fall through to the
+	// cycling below
+	if ( ( key == K_MWHEELUP || key == K_MWHEELDOWN ) &&
+		 s->generic.parent->displaySpinList == s )
+	{
+		drawList_t *d = &s->drawList;
+
+		if ( key == K_MWHEELUP )
+		{
+			if ( d->top <= 0 )
+				return menu_buzz_sound;
+			d->top--;
+		}
+		else
+		{
+			if ( d->top >= s->numitems - d->rows )
+				return menu_buzz_sound;
+			d->top++;
+		}
+		return menu_move_sound;
+	}
+
 	switch (key)
 	{
 		case K_MOUSE1:
@@ -2175,13 +2305,16 @@ static sfxHandle_t SpinControl_Key( menulist_s *s, int key )
 
 		case K_ENTER:
 		case K_KP_ENTER:
-			if ( ui.Cvar_VariableValue( "ui_spinLists" ) && !s->ignoreList && s->numitems > 1 && (s->generic.flags & QMF_HASMOUSEFOCUS) )
+			// A list of two is a list nobody needs: On/Off and its like cost a
+			// second click and a bracket to say what one click already said, so
+			// they keep the original behaviour and toggle in place.
+			if ( ui.Cvar_VariableValue( "ui_spinLists" ) && !s->ignoreList && s->numitems > 2 && (s->generic.flags & QMF_HASMOUSEFOCUS) )
 			{
-				sound = SpinControl_InitListRender( s );
-				// this call may only have opened the list, in which case
-				// nothing has been chosen yet - suppress the callback until
-				// a later call closes it (by selecting, or clicking away)
-				suppressCallback = (qboolean)( s->generic.parent->displaySpinList == s );
+				sound = SpinControl_InitListRender( s, &chose );
+				// opening the list, scrolling it and dismissing it all leave
+				// the value alone, so only an actual choice may fire the
+				// callback the menus hang their work off
+				suppressCallback = (qboolean)!chose;
 			}
 			else
 			{
@@ -2219,6 +2352,9 @@ static sfxHandle_t SpinControl_Key( menulist_s *s, int key )
 			break;
 	}
 
+	if ( s->generic.parent->displaySpinList == s )
+		SpinControl_ScrollIntoView( s );
+
 	// the callback fires immediately for every value change, exactly as it
 	// did before the list feature, except when this call has just opened
 	// the list and no value has actually been chosen yet
@@ -2230,21 +2366,39 @@ static sfxHandle_t SpinControl_Key( menulist_s *s, int key )
 
 /*
 ===============
+UI_DrawMenuPill
+
+The menu's button shape: a rounded cap either end of a stretched bar, which is
+how every LCARS button in here is built.  `width` is the bar, so the pill runs
+from x to x + width + 2 * MENU_BUTTON_MED_HEIGHT - 16.
+===============
+*/
+void UI_DrawMenuPill( int x, int y, int width, int color )
+{
+	ui.R_SetColor( colorTable[color] );
+	UI_DrawHandlePic( x, y, MENU_BUTTON_MED_HEIGHT, MENU_BUTTON_MED_HEIGHT, uis.graphicButtonLeftEnd );
+	UI_DrawHandlePic( x + width + MENU_BUTTON_MED_HEIGHT - 16, y, -MENU_BUTTON_MED_HEIGHT, MENU_BUTTON_MED_HEIGHT, uis.graphicButtonLeftEnd );
+	UI_DrawHandlePic( x + MENU_BUTTON_MED_HEIGHT - 8, y, width, MENU_BUTTON_MED_HEIGHT, uis.whiteShader );
+}
+
+/*
+===============
 SpinControl_Draw
 ===============
 */
 void SpinControl_Draw( menulist_s *s )
 {
 	int x,y,listX,buttonColor,buttonTextColor;
-	// TiM - the open list is a black box over a menu of white values, and the
-	// two read as one surface.  Dropping every other value to grey while it is
-	// up separates them: the list keeps the only white text on screen.  Done by
-	// colour rather than by setting QMF_GRAYED, because these menuframework_s
-	// are static and persistent - a flag set here has to be cleared again on
-	// every path that leaves the menu, which is the bug already fixed once in
-	// this file for displaySpinList after a K_MOUSE2.
-	int valueColor = ( s->generic.parent->displaySpinList &&
-					   s->generic.parent->displaySpinList != s ) ? CT_MDGREY : CT_WHITE;
+	// TiM - while another control's list is open this one cannot be used, so it
+	// says so by going quiet: the pill and its value both drop back, leaving the
+	// list the only lit thing in the panel.  Nothing moves and nothing is
+	// hidden.  Done here rather than by setting QMF_GRAYED,
+	// because these menuframework_s are static and persistent: a flag set here
+	// has to be cleared again on every path that leaves the menu, which is the
+	// bug already fixed once in this file for displaySpinList after a K_MOUSE2.
+	// Drawing differently has nothing to unwind.
+	qboolean muted = (qboolean)( s->generic.parent->displaySpinList != NULL &&
+								 s->generic.parent->displaySpinList != s );
 
 	x = s->generic.x;
 	y =	s->generic.y;
@@ -2257,21 +2411,21 @@ void SpinControl_Draw( menulist_s *s )
 	if ( s->numitems > 0 && ( s->curvalue < 0 || s->curvalue >= s->numitems ) )
 		s->curvalue = 0;
 
-	// Print current value
-	if (s->listnames)
+	// Print current value.  It stays put while another control's list is open,
+	// and goes grey with the rest of that control: the box no longer covers the
+	// column these sit in, and a value that vanished would take the panel's
+	// shape with it.
+	// numitems is counted in SpinControl_Init by walking to the terminator, so
+	// anything above zero has a name at curvalue to print.
+	if ( s->numitems > 0 )
 	{
-		if ( !strchr( menu_normal_text[s->listnames[s->curvalue]], '\n' ) )
+		const char *value = SpinControl_ItemName( s, s->curvalue );
+
+		if ( !strchr( value, '\n' ) )
 		{
 			listX = x + MENU_BUTTON_MED_HEIGHT + s->width - 8 + MENU_BUTTON_MED_HEIGHT + 4;
-			UI_DrawProportionalString( listX, y + s->textY,menu_normal_text[s->listnames[s->curvalue]], UI_SMALLFONT, colorTable[valueColor] );
-		}
-	}
-	else if (s->itemnames[0])
-	{
-		if ( !strchr(s->itemnames[s->curvalue], '\n' ) )
-		{
-			listX = x + MENU_BUTTON_MED_HEIGHT + s->width - 8 + MENU_BUTTON_MED_HEIGHT + 4;
-			UI_DrawProportionalString( listX, y + s->textY,s->itemnames[s->curvalue], UI_SMALLFONT, colorTable[valueColor] );
+			UI_DrawProportionalString( listX, y + s->textY, value, UI_SMALLFONT,
+									   colorTable[muted ? CT_DKGREY : CT_WHITE] );
 		}
 	}
 
@@ -2305,11 +2459,27 @@ void SpinControl_Draw( menulist_s *s )
 //		UI_DrawHandlePic(x - 10,y + 6, 8, 8, uis.graphicCircle);
 //	}
 
+	if ( muted )
+	{
+		// the look a spin control already has when QMF_GRAYED puts it out of
+		// reach - COLOR DEPTH wears it whenever the mode makes it irrelevant -
+		// so a disabled control looks disabled for one reason, not two
+		buttonColor = CT_DKGREY;
+		buttonTextColor = s->textcolor;
+	}
+
+	// TiM - while this control's own list is open the row becomes its header:
+	// inverted, so it reads as the thing the list belongs to rather than as
+	// one more option among the rows below it
+	if ( s->generic.parent->displaySpinList == s )
+	{
+		buttonColor = SPINLIST_OPEN_COLOR;
+		buttonTextColor = CT_BLACK;
+	}
+
 	// Draw button and button text
-	ui.R_SetColor( colorTable[buttonColor]);
-	UI_DrawHandlePic(x,y, MENU_BUTTON_MED_HEIGHT, MENU_BUTTON_MED_HEIGHT, uis.graphicButtonLeftEnd);											// Left
-	UI_DrawHandlePic(x+ s->width+ MENU_BUTTON_MED_HEIGHT - 16, y, -MENU_BUTTON_MED_HEIGHT, MENU_BUTTON_MED_HEIGHT, uis.graphicButtonLeftEnd);	// Right
-	UI_DrawHandlePic(x + MENU_BUTTON_MED_HEIGHT - 8,y, s->width, MENU_BUTTON_MED_HEIGHT, uis.whiteShader);										// Middle
+	UI_DrawMenuPill( x, y, s->width, buttonColor );
+
 
 	// TiM - MBT_NONE is the "no label" enum, and its text is never filled
 	// in: UI_ParseButtonText starts at 1 because "Zero is null string", so
@@ -3003,41 +3173,120 @@ void Menu_Draw( menuframework_s *menu )
 	if ( menu->displaySpinList )
 	{
 		menulist_s	*s = (menulist_s *)menu->displaySpinList;
-		int			boxWidth = s->drawList.right - s->drawList.left;
-		int			boxHeight = s->drawList.down - s->drawList.up;
-		int			selectedNum, i;
+		drawList_t	*d = &s->drawList;
+		int			ruleRight	= d->boxRight - SPINLIST_RULE;
+		int			bottomY		= d->boxBottom - SPINLIST_RULE;
+		int			hovered, i;
 
+		// Ground.  The controls underneath keep their places and stay legible -
+		// they have gone grey in their own draw - but the box needs something
+		// solid or the panel art reads straight through the choices.
 		ui.R_SetColor( colorTable[CT_BLACK] );
-		UI_DrawHandlePic( s->drawList.left, s->drawList.up, boxWidth, boxHeight, uis.whiteShader );
+		UI_DrawHandlePic( d->boxLeft, d->boxTop, d->boxRight - d->boxLeft,
+						  d->boxBottom - d->boxTop, uis.whiteShader );
 
+		// The frame, all of it under the one colour.  Nothing may draw a string
+		// in the middle of this: UI_DrawProportionalString ends by setting the
+		// colour back to NULL, which is white, and everything after it in the
+		// run would come out white too.
 		ui.R_SetColor( colorTable[s->color2] );
-		UI_DrawHandlePic( s->drawList.left, s->drawList.up + 1, 1, boxHeight - 2, uis.whiteShader );
-		UI_DrawHandlePic( s->drawList.left, s->drawList.up, boxWidth, 1, uis.whiteShader );
-		UI_DrawHandlePic( s->drawList.right - 1, s->drawList.up + 1, 1, boxHeight - 2, uis.whiteShader );
-		UI_DrawHandlePic( s->drawList.left, s->drawList.down - 1, boxWidth, 1, uis.whiteShader );
 
-		// TiM - no row is selected when the cursor sits outside the box; leaving
-		// selectedNum at a real index here would still match a row below and
-		// draw its text CT_BLACK with no highlight backing it, i.e. invisible
-		if ( UI_CursorInRect( s->drawList.left, s->drawList.up, boxWidth, boxHeight ) )
+		// The corners.  The right hand pair are the small corner drawn over and
+		// mirrored; the left are the wider one, which turns the thick rule into
+		// the thin bars.  Both sit SPINLIST_CORNER_FLIP into the rect on the
+		// axis they are flipped in - see ui_local.h.
+		UI_DrawHandlePic( d->boxLeft, d->boxTop - SPINLIST_CORNER_FLIP,
+						  SPINLIST_LCORNER_TEX_W, -SPINLIST_LCORNER_TEX_H,
+						  uis.graphicCornerL8to4 );
+		UI_DrawHandlePic( d->boxLeft, bottomY - SPINLIST_CORNER_BAR_Y,
+						  SPINLIST_LCORNER_TEX_W, SPINLIST_LCORNER_TEX_H,
+						  uis.graphicCornerL8to4 );
+		UI_DrawHandlePic( d->boxRight - SPINLIST_CORNER_TEX,
+						  d->boxTop - SPINLIST_CORNER_FLIP,
+						  -SPINLIST_CORNER_TEX, -SPINLIST_CORNER_TEX,
+						  uis.graphicCornerL4to4 );
+		UI_DrawHandlePic( d->boxRight - SPINLIST_CORNER_TEX,
+						  bottomY - SPINLIST_CORNER_BAR_Y,
+						  -SPINLIST_CORNER_TEX, SPINLIST_CORNER_TEX,
+						  uis.graphicCornerL4to4 );
+
+		// The four rules, each running a seam into the corner at either end so
+		// the joins cannot open up when 640x480 is stretched to the window.
+		UI_DrawHandlePic( d->boxLeft + SPINLIST_LCORNER_INK_W - SPINLIST_SEAM, d->boxTop,
+						  ( d->boxRight - SPINLIST_CORNER_INK + SPINLIST_SEAM )
+						  - ( d->boxLeft + SPINLIST_LCORNER_INK_W - SPINLIST_SEAM ),
+						  SPINLIST_RULE, uis.whiteShader );
+		UI_DrawHandlePic( d->boxLeft + SPINLIST_LCORNER_INK_W - SPINLIST_SEAM, bottomY,
+						  ( d->boxRight - SPINLIST_CORNER_INK + SPINLIST_SEAM )
+						  - ( d->boxLeft + SPINLIST_LCORNER_INK_W - SPINLIST_SEAM ),
+						  SPINLIST_RULE, uis.whiteShader );
+		// The thick side breaks from its corners rather than seaming into them,
+		// the way the panel's own container does: the loop around the options
+		// runs unbroken and the pieces down its side are separate lengths.  It
+		// is the only rule that does, which is what makes it read as a segment
+		// of rail rather than as one of four sides.
+		UI_DrawHandlePic( d->boxLeft, d->boxTop + SPINLIST_LCORNER_INK_H + SPINLIST_GAP,
+						  SPINLIST_RULE_L,
+						  ( bottomY - SPINLIST_CORNER_BAR_Y - SPINLIST_GAP )
+						  - ( d->boxTop + SPINLIST_LCORNER_INK_H + SPINLIST_GAP ),
+						  uis.whiteShader );
+		UI_DrawHandlePic( ruleRight, d->boxTop + SPINLIST_CORNER_INK - SPINLIST_SEAM,
+						  SPINLIST_RULE,
+						  ( d->boxBottom - SPINLIST_CORNER_INK + SPINLIST_SEAM )
+						  - ( d->boxTop + SPINLIST_CORNER_INK - SPINLIST_SEAM ),
+						  uis.whiteShader );
+
+		// The marker: the stretch of left rule beside whatever is currently set.
+		// This is what the thickness is for - a 4-thin rule has nowhere to put
+		// it - so the asymmetry pays for itself rather than being a flourish.
+		// CT_LTBROWN1 is the burnt orange of the bar along the bottom of the
+		// screen, so the marker borrows a colour the frame around it already
+		// uses rather than introducing one.
+		if ( s->curvalue >= d->top && s->curvalue < d->top + d->rows )
 		{
-			selectedNum = SpinControl_ListIndexAtCursor( s );
+			int markY = d->up + ( s->curvalue - d->top ) * SPINLIST_ROW_H;
 
-			ui.R_SetColor( colorTable[s->color] );
-			UI_DrawHandlePic( s->drawList.left + 1, ( s->drawList.up + 1 ) + SMALLCHAR_HEIGHT * selectedNum,
-							  boxWidth - 2, SMALLCHAR_HEIGHT + 1, uis.whiteShader );
+			ui.R_SetColor( colorTable[CT_BLACK] );
+			UI_DrawHandlePic( d->boxLeft, markY - SPINLIST_GAP,
+							  SPINLIST_RULE_L, SPINLIST_GAP, uis.whiteShader );
+			UI_DrawHandlePic( d->boxLeft, markY + SPINLIST_MARK_H,
+							  SPINLIST_RULE_L, SPINLIST_GAP, uis.whiteShader );
+
+			ui.R_SetColor( colorTable[CT_LTBROWN1] );
+			UI_DrawHandlePic( d->boxLeft, markY,
+							  SPINLIST_RULE_L, SPINLIST_MARK_H, uis.whiteShader );
 		}
-		else
-		{
-			selectedNum = -1;
-		}
 
-		for ( i = 0; i < s->numitems; i++ )
+		// The choices, plain text on the black - no pill each, because a pill is
+		// how this menu draws something you press, and a list of twenty pressable
+		// things reads as noise where twenty words read as a list.
+		hovered = SpinControl_HoveredRow( s );
+
+		for ( i = 0; i < d->rows && d->top + i < s->numitems; i++ )
 		{
-			const char *text = s->listnames ? menu_normal_text[s->listnames[i]] : s->itemnames[i];
-			UI_DrawProportionalString( s->drawList.left + 2, ( s->drawList.up + 2 ) + SMALLCHAR_HEIGHT * i,
-									   text, UI_SMALLFONT,
-									   colorTable[ i == selectedNum ? CT_BLACK : CT_WHITE ] );
+			int	index = d->top + i;
+			int	rowColor;
+
+			// White for what is set - the marker in the left rule says which
+			// that is as well - and for everything else the orange this
+			// screen's own title is drawn in.  The row under the cursor keeps
+			// that colour, because the bar behind it is the highlight and two
+			// signals for one state only muddies both.
+			rowColor = ( index == s->curvalue ) ? CT_WHITE : CT_LTORANGE;
+
+			// Under the cursor, the translucent orange the scroll lists use for
+			// the row they are on, so a list of choices highlights the way
+			// every other list in these menus does.
+			if ( index == hovered )
+				UI_FillRect( d->left - ( SPINLIST_INSET - SPINLIST_HALO ),
+							 d->up + i * SPINLIST_ROW_H,
+							 ( d->right - d->left )
+							 + ( SPINLIST_INSET - SPINLIST_HALO ) * 2,
+							 SPINLIST_MARK_H, listbar_color );
+
+			UI_DrawProportionalString( d->left, d->up + i * SPINLIST_ROW_H,
+									   SpinControl_ItemName( s, index ),
+									   UI_SMALLFONT, colorTable[rowColor] );
 		}
 		ui.R_SetColor( NULL );
 	}
@@ -3102,6 +3351,36 @@ void Menu_CloseSpinList( menuframework_s *menu )
 
 	menu->displaySpinList = NULL;
 	menu->noNewSelecting = qfalse;
+}
+
+/*
+===============
+Menu_SpinListMouseMoved
+
+Called while a list is open, where UI_MouseEvent otherwise does nothing: focus
+belongs to the control that opened the list, so the usual region test is
+skipped and no move sound would ever play.  The rows are the things being moved
+between now, so they make the sound instead.
+===============
+*/
+void Menu_SpinListMouseMoved( menuframework_s *menu )
+{
+	menulist_s	*s;
+	int			row;
+
+	if ( !menu || !menu->displaySpinList )
+		return;
+
+	s = (menulist_s *)menu->displaySpinList;
+	row = SpinControl_HoveredRow( s );
+
+	if ( row == s->drawList.hovered )
+		return;
+
+	s->drawList.hovered = row;
+
+	if ( row >= 0 )
+		ui.S_StartLocalSound( menu_move_sound, CHAN_LOCAL_SOUND );
 }
 
 /*
@@ -3335,6 +3614,10 @@ void Menu_Cache( void )
 	uis.graphicCircle2 = ui.R_RegisterShaderNoMip("menu/objectives/circle.tga");
 	uis.graphicEmptyCircle2 = ui.R_RegisterShaderNoMip("menu/objectives/circle_out.tga");
 	uis.graphicButtonLeftEnd = ui.R_RegisterShaderNoMip("menu/common/barbuttonleft.tga");
+	// The spin list's frame turns all four of its corners with this one, drawn
+	// mirrored, upside down, or both.
+	uis.graphicCornerL4to4 = ui.R_RegisterShaderNoMip("menu/common/corner_ll_4_4.tga");
+	uis.graphicCornerL8to4 = ui.R_RegisterShaderNoMip("menu/common/corner_ll_4_8.tga");
 
 	uis.graphicBracket1CornerLU =  ui.R_RegisterShaderNoMip("menu/common/corner_lu.tga");
 

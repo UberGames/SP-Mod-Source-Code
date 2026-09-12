@@ -1544,6 +1544,88 @@ typedef enum{
 
 extern char *menu_button_text[MBT_MAX][2];
 #define MENU_BUTTON_MED_HEIGHT	18
+
+// The open spin list is the framed list box RPG-X2 uses for its character
+// roster: the choices as plain text on black inside a thin rectangle.
+//
+//     ,-------.   thin rules on three sides and a thick one down the left,
+//     | 4:3   |   which carries a block of colour against whichever choice is
+//     |#16:9  |   the current one - the weight is there to hold the marker,
+//     | 16:10 |   which is what keeps it from being decoration
+//     | 21:9  |
+//     `-------'   It grows to its longest choice and stops: a popup hanging
+//                 off a control, not a window, and it reads as one by being
+//                 no bigger than it has to be.
+//
+// There is no way out drawn on it.  Escape, a right click and a click anywhere
+// outside all close it, which is what every other picker does.
+//
+// There is no scroll furniture either.  It grows to hold every choice and only
+// stops where it would run off the screen; past that the wheel scrolls it.  The
+// day a list is long enough to need saying so, an arrow at each end of a track
+// down the right is what goes back in - see the history of this file.
+#define SPINLIST_RULE			4	// the top, right and bottom
+#define SPINLIST_RULE_L			8	// the left, which carries the marker
+#define SPINLIST_INSET			8	// rule to the choices, left and right
+#define SPINLIST_ROW_H			20	// a row of UI_SMALLFONT, and its leading
+// The bar behind the row under the cursor is what the eye measures the box's
+// padding by, not the glyphs, so it is what the spacing is built from: this
+// much black between it and the rules, on all four sides, and the same much
+// between one row's bar and the next.  The row pitch carries that last gap
+// already, which is why no separate padding is needed above the bottom rule.
+#define SPINLIST_HALO			4
+#define SPINLIST_MARK_H			(SPINLIST_ROW_H - SPINLIST_HALO)
+// Black either side of the marker, so it reads as a length cut out of the rule
+// rather than as a length painted over it.
+#define SPINLIST_GAP			2
+#define SPINLIST_MARGIN			8	// least gap from the box to the screen edge
+#define SPINLIST_GUTTER			8	// clear of the column of buttons it belongs to
+// The menu is laid out in 640x480 and stretched to whatever the window is, so
+// two rects that merely touch can land either side of a screen pixel and leave
+// a hairline of whatever is behind them.  Every piece of the frame overlaps its
+// neighbour by this much, which costs nothing and cannot crack.  It works only
+// between pieces of the same colour: an overlap in a different colour draws
+// over its neighbour rather than behind it.
+#define SPINLIST_SEAM			1
+
+// What the screen can hold, rather than a number picked out of the air: the
+// box's own furniture off the top and bottom, the rest divided into rows.
+#define SPINLIST_ROWS_MAX		( ( SCREEN_HEIGHT - SPINLIST_MARGIN * 2 \
+									- SPINLIST_RULE * 2 - SPINLIST_HALO ) \
+								  / SPINLIST_ROW_H )
+
+// One texture turns all four corners.  corner_ll_4_4 is 8x8 with its ink 6x6
+// in the top left: a 4-wide rule down the left of it and a 4-tall bar along
+// the bottom, meeting in a small inner curve.  A negative extent in
+// UI_DrawHandlePic flips the texels while the rect still runs right and down
+// from x,y, so drawn -8 wide it is the right hand corners and drawn -8 tall
+// the upper ones.
+//
+// Flipping also moves the ink to the far end of the rect, SPINLIST_CORNER_FLIP
+// from where it started, which is why the corners are drawn from outside the
+// box on the axes they are flipped in.
+#define SPINLIST_CORNER_TEX		8
+#define SPINLIST_CORNER_INK		6
+#define SPINLIST_CORNER_BAR_Y	2	// where the 4-tall bar starts inside that ink
+#define SPINLIST_CORNER_FLIP	(SPINLIST_CORNER_TEX - SPINLIST_CORNER_INK)
+
+// The left hand pair need a thicker upright, and corner_ll_4_8 is the piece
+// for it: 16x8 with its ink 10x6, an 8-wide rule turning into a 4-tall bar.
+// Its name reads backwards against the rest of the set - every other corner is
+// <rule>_<bar> and this one is <bar>_<rule> - which is why it looked useless
+// until the left side needed to be the thick one.  Drawn as it is it is the
+// bottom left; upside down, the top.  Its bar starts the same 2 into the ink
+// as the small corner's, and turning it over drops the ink the same 2, so
+// SPINLIST_CORNER_BAR_Y and SPINLIST_CORNER_FLIP serve for both.
+#define SPINLIST_LCORNER_TEX_W	16
+#define SPINLIST_LCORNER_TEX_H	8
+#define SPINLIST_LCORNER_INK_W	10
+#define SPINLIST_LCORNER_INK_H	6
+
+// The row of the control whose list is open inverts, so it reads as the thing
+// the box belongs to rather than as one more choice among the ones below it.
+// The box itself keeps the control's own highlight colour, a step darker.
+#define SPINLIST_OPEN_COLOR		CT_VLTPURPLE1
 #define MENU_BUTTON_MED_WIDTH	130
 #define MENU_TITLE_X			611
 #define MENU_TITLE_Y			24
@@ -1644,6 +1726,9 @@ typedef struct _tag_menuframework
 	int			titleI;				// The title
 	int			footNoteEnum;		// Footnote text
 
+	int			spinListRight;		// how far right an open spin list may run before
+									// it would leave this menu's panel; 0 for a menu
+									// that has not said, which lets it run anywhere
 	void		*displaySpinList;	// the open menulist_s, or NULL
 	qboolean	noNewSelecting;		// no other item takes focus while a list is open
 } menuframework_s;
@@ -1725,11 +1810,19 @@ typedef struct
 	float range;
 } menuslider_s;
 
-// TiM - a spin control's options drawn as a list over the menu
+// TiM - a spin control's options drawn as a list over the menu.  Everything
+// here is worked out once, when the list opens, and read by both the draw and
+// the click - they have to agree about where a row is or the wrong one is
+// chosen.
 typedef struct
 {
-	int		left, up, right, down;
-	int		xOffset, yOffset;	// applied when the box would leave the screen
+	int		left, up, right, down;	// the rows themselves
+	int		boxLeft, boxTop;		// the frame around them, including the footer
+	int		boxRight, boxBottom;
+	int		rows;					// rows on screen at once, <= numitems
+	int		top;					// first item drawn, 0 unless it has scrolled
+	int		hovered;				// the row the cursor was last over, or -1;
+									// kept so moving onto a new one can be heard
 } drawList_t;
 
 typedef struct
@@ -1889,6 +1982,8 @@ extern void		Menu_SetStatusBar( menuframework_s *s, const char *string );
 extern void		Menu_SlideItem( menuframework_s *s, int dir );
 extern void		Menu_SetCursor( menuframework_s *s, int cursor );
 extern void		Menu_CloseSpinList( menuframework_s *menu );
+extern void		Menu_SpinListMouseMoved( menuframework_s *menu );
+extern void		UI_DrawMenuPill( int x, int y, int width, int color );
 sfxHandle_t		Menu_DefaultKey( menuframework_s *s, int key );
 extern void Mouse_Show(void);
 extern void Mouse_Hide(void);
@@ -2052,6 +2147,8 @@ typedef struct {
 	// Common Menu Graphics
 	qhandle_t			smallNumbers[10];
 	qhandle_t			graphicButtonLeftEnd;			// Rounded left button end
+	qhandle_t			graphicCornerL4to4;				// A 4-tall bar turning into a 4-wide rule
+	qhandle_t			graphicCornerL8to4;				// ...and into an 8-wide one
 	qhandle_t			graphicCircle;					// Solid circle
 	qhandle_t			graphicCircle2;
 	qhandle_t			graphicEmptyCircle2;

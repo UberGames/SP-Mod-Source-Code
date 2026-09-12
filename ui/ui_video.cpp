@@ -1436,6 +1436,10 @@ static void VideoData_MenuInit( void )
 	s_video_menu.titleY						= MENU_TITLE_Y;
 	s_video_menu.titleI						= MNT_CONTROLSMENU_TITLE;
 	s_video_menu.footNoteEnum				= MNT_VIDEOSETUP;
+	// How far an open spin list may run before it would leave the black: the
+	// right-hand end of the Video Data bracket, where the bracket's own top and
+	// bottom lines end in M_VideoDataMenu_Graphics.
+	s_video_menu.spinListRight				= 494;
 
 	static int s_graphics_options_Names[] =
 	{
@@ -1988,6 +1992,8 @@ static void Video2_MenuInit( void )
 	s_video2_menu.titleY						= MENU_TITLE_Y;
 	s_video2_menu.titleI						= MNT_CONTROLSMENU_TITLE;
 	s_video2_menu.footNoteEnum					= MNT_VIDEOSETUP;
+	// as above, but this menu's bracket is the wider one - see Video2_MenuGraphics
+	s_video2_menu.spinListRight					= 582;
 
 	SetupMenu_TopButtons(&s_video2_menu,MENU_VIDEO,NULL);
 

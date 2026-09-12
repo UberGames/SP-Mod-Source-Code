@@ -1082,9 +1082,13 @@ static void UI_MouseEvent( int dx, int dy )
 		uis.cursory = SCREEN_HEIGHT;
 
 	// TiM - a spin list is open: leave focus exactly where it is, and only
-	// track the cursor for the list's own hit-testing
+	// track the cursor for the list's own hit-testing.  The list still wants to
+	// be heard moving between its rows, which is its own business.
 	if (uis.activemenu->noNewSelecting)
+	{
+		Menu_SpinListMouseMoved( uis.activemenu );
 		return;
+	}
 
 	// region test the active menu items
 	for (i=0; i<uis.activemenu->nitems; i++)

@@ -300,10 +300,10 @@ static void CG_DrawTalk(centity_t	*cent)
 		color[3] = 0.350F;
 
 		cgi_R_SetColor(color);	// Background
-		CG_DrawPic( 5, 27,  50, 64,	cgs.media.ammoslider );
+		CG_DrawPic( CG_WideLeft( 5 ), 27,  50, 64,	cgs.media.ammoslider );
 
 		cgi_R_SetColor(colorTable[CT_LTPURPLE1]);
-		CG_DrawPic( 5, 6, 128, 64,	cgs.media.talkingtop );
+		CG_DrawPic( CG_WideLeft( 5 ), 6, 128, 64,	cgs.media.talkingtop );
 /*
 		totalLines = cg.scrollTextLines - cg.gameTextCurrentLine;
 
@@ -327,10 +327,10 @@ static void CG_DrawTalk(centity_t	*cent)
 		angles[YAW] = 180;
 
 
-		CG_DrawHead( -6, 25, size, size, cg.gameTextSpeaker, angles );
+		CG_DrawHead( CG_WideLeft( -6 ), 25, size, size, cg.gameTextSpeaker, angles );
 
 		cgi_R_SetColor(colorTable[CT_LTPURPLE1]);	// Bottom
-		CG_DrawPic( 5, 90, 64, 16,	cgs.media.talkingbot );
+		CG_DrawPic( CG_WideLeft( 5 ), 90, 64, 16,	cgs.media.talkingbot );
 		cgi_R_SetColor(NULL);
 	}
 }
@@ -359,7 +359,7 @@ static void CG_DrawArmor(centity_t	*cent)
 		{
 			cgi_R_SetColor(colorTable[interface_graphics[i].color]);
 
-			CG_DrawPic( interface_graphics[i].x, 
+			CG_DrawPic( CG_InterfaceX( i ), 
 			interface_graphics[i].y,	
 			interface_graphics[i].width, 
 			interface_graphics[i].height,	
@@ -723,17 +723,22 @@ static void CG_DrawZoomMask( void )
 		return;
 	}
 
-	// Calc where to place the zoom mask...all calcs are based off of a virtual 640x480 screen
+	// The mask is a vignette over the view, so it covers the whole display rather
+	// than the 4:3 canvas: it is the scope you are looking through, and leaving
+	// the far sides of a wide screen unmasked would show the world around the
+	// edge of it.  The curvy art and the readouts below stay on the canvas,
+	// centred and the shape they were drawn - those are the scope's furniture,
+	// and a player should not have to look across a metre of desk to read them.
 	size = cg_viewsize.integer;
 
-	width = 640 * size * 0.01;
+	width = cgs.glconfig.vidWidth * size * 0.01;
 	width &= ~1;
 
-	height = 480 * size * 0.01;
+	height = cgs.glconfig.vidHeight * size * 0.01;
 	height &= ~1;
 
-	start_x = ( 640 - width ) * 0.5;
-	start_y = ( 480 - height ) * 0.5;
+	start_x = ( cgs.glconfig.vidWidth - width ) * 0.5;
+	start_y = ( cgs.glconfig.vidHeight - height ) * 0.5;
 
 	if ( cg.zoomed )
 	{
@@ -749,7 +754,7 @@ static void CG_DrawZoomMask( void )
 
 		// Set fade color--then draw fullscreen mask
 		cgi_R_SetColor( color1 );
-		CG_DrawPic( start_x, start_y, width, height, cgs.media.zoomMaskShader );
+		CG_DrawPic2( start_x, start_y, width, height, cgs.media.zoomMaskShader );
 
 		start_x = 210;
 		start_y = 80;
@@ -822,7 +827,7 @@ static void CG_DrawZoomMask( void )
 			}
 
 			cgi_R_SetColor( color1 );
-			CG_DrawPic( start_x, start_y, width, height, cgs.media.zoomMaskShader );
+			CG_DrawPic2( start_x, start_y, width, height, cgs.media.zoomMaskShader );
 		}
 	}
 }
@@ -862,7 +867,7 @@ static void CG_DrawTeleportEffects( void )
 		color[3] = 1.0f;
 
 		cgi_R_SetColor( color );
-		CG_DrawPic( 0, 0, 640, 480, cgs.media.playerTeleportShader );
+		CG_DrawPic2( 0, 0, cgs.glconfig.vidWidth, cgs.glconfig.vidHeight, cgs.media.playerTeleportShader );
 
 		if ( cent->gent->client->ps.powerups[PW_INVIS] - 2000 < cg.time )
 		{
@@ -887,7 +892,7 @@ static void CG_DrawTeleportEffects( void )
 		color[3] = 1.0f;
 
 		cgi_R_SetColor( color );
-		CG_DrawPic( 0, 0, 640, 480, cgs.media.playerTeleportShader );
+		CG_DrawPic2( 0, 0, cgs.glconfig.vidWidth, cgs.glconfig.vidHeight, cgs.media.playerTeleportShader );
 
 		if ( cent->gent->client->ps.powerups[PW_QUAD] - 2000 < cg.time )
 		{
@@ -1075,9 +1080,13 @@ static void CG_DrawCrosshair(void) {
 		h *= ( 1 + f );
 	}
 
-	x = cg_crosshairX.integer;
-	y = cg_crosshairY.integer;
-	CG_AdjustFrom640( &x, &y, &w, &h );
+	// These are an offset from the middle of the 3D view and a size, not a place
+	// on the canvas, so they take the scale on its own: CG_AdjustFrom640 would
+	// add the margin that centres the canvas and push the crosshair off centre.
+	x = cg_crosshairX.integer * cgs.screenXScale;
+	y = cg_crosshairY.integer * cgs.screenYScale;
+	w *= cgs.screenXScale;
+	h *= cgs.screenYScale;
 
 	hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
 
@@ -1123,7 +1132,23 @@ static qboolean CG_WorldCoordToScreenCoord(vec3_t worldCoord, int *x, int *y, qb
 		}
 	}
 	// Simple convert to screen coords.
-	float xzi = xcenter / transformed[2] * (90.0/cg.refdef.fov_x);
+	//
+	// On a screen wider than 4:3 the horizontal field of view opens out to fill
+	// it (see CG_CalcFOVFromX), but what this projects into is the 640x480
+	// canvas, which stays 4:3 in the middle of the screen.  Feeding it the
+	// widened angle would pull every label in towards the centre and off the
+	// thing it is labelling.  Project with the angle the canvas itself covers
+	// instead - the vertical angle is the one that does not move, so take it
+	// from there - and let an x outside 0..640 be a point out in the margins,
+	// which the drawing puts where it belongs.
+	float fovCanvas = cg.refdef.fov_x;
+	if ( cg.refdef.fov_y > 0.0f )
+	{
+		fovCanvas = 2.0f * atan( tan( cg.refdef.fov_y * M_PI / 360.0f ) * ( 4.0f / 3.0f ) )
+					* ( 180.0f / M_PI );
+	}
+
+	float xzi = xcenter / transformed[2] * (90.0/fovCanvas);
 	float yzi = ycenter / transformed[2] * (90.0/cg.refdef.fov_y);
 
 	*x = (int)(xcenter + xzi * transformed[0]);
@@ -2198,7 +2223,7 @@ static float CG_DrawSnapshot( float y ) {
 	s = va( "time:%i snap:%i cmd:%i", cg.snap->serverTime, 
 		cg.latestSnapshotNum, cgs.serverCommandSequence );
 	w = CG_ProportionalStringWidth(s,UI_BIGFONT);
-	CG_DrawProportionalString(635 - w, y + 2, s, UI_BIGFONT, colorTable[CT_LTGOLD1]);
+	CG_DrawProportionalString(CG_WideRight( 635 ) - w, y + 2, s, UI_BIGFONT, colorTable[CT_LTGOLD1]);
 
 	return y + BIGCHAR_HEIGHT + 10;
 }
@@ -2241,7 +2266,7 @@ static float CG_DrawFPS( float y ) {
 
 		s = va( "%ifps", fps );
 		w = CG_ProportionalStringWidth(s,UI_BIGFONT);
-		CG_DrawProportionalString(635 - w, y+2, s, UI_BIGFONT, colorTable[CT_LTGOLD1]);
+		CG_DrawProportionalString(CG_WideRight( 635 ) - w, y+2, s, UI_BIGFONT, colorTable[CT_LTGOLD1]);
 	}
 
 	return y + BIGCHAR_HEIGHT + 10;
@@ -2266,7 +2291,7 @@ static float CG_DrawTimer( float y ) {
 	s = va( "%i:%i%i", mins, tens, seconds );
 
 	w = CG_ProportionalStringWidth(s,UI_BIGFONT);
-	CG_DrawProportionalString(635 - w, y + 2, s, UI_BIGFONT, colorTable[CT_LTGOLD1]);
+	CG_DrawProportionalString(CG_WideRight( 635 ) - w, y + 2, s, UI_BIGFONT, colorTable[CT_LTGOLD1]);
 
 	return y + BIGCHAR_HEIGHT + 10;
 }

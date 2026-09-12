@@ -1252,20 +1252,8 @@ void CG_GameStateReceived( void ) {
 
 	// get the rendering configuration from the client system
 	cgi_GetGlconfig( &cgs.glconfig );
-	cgs.screenXScale = cgs.glconfig.vidWidth / 640.0;
-	cgs.screenYScale = cgs.glconfig.vidHeight / 480.0;
+	CG_UpdateScreenScale();
 
-
-/*	cgs.charScale = cgs.glconfig.vidHeight * (1.0/480.0);
-	if ( cgs.glconfig.vidWidth * 480 > cgs.glconfig.vidHeight * 640 ) {
-		// wide screen
-		cgs.bias = 0.5 * ( cgs.glconfig.vidWidth - ( cgs.glconfig.vidHeight * (640.0/480.0) ) );
-	}
-	else {
-		// no wide screen
-		cgs.bias = 0;
-	}
-*/
 	// get the gamestate from the client system
 	cgi_GetGameState( &cgs.gameState );
 

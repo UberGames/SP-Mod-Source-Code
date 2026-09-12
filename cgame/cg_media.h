@@ -333,11 +333,16 @@ typedef struct {
 typedef struct {
 	gameState_t		gameState;			// gamestate from server
 	glconfig_t		glconfig;			// rendering configuration
+	// How the 640x480 layout lands on the screen.  The two scales are equal, so
+	// nothing is stretched; the bias centres the 4:3 canvas in a screen of some
+	// other shape.  wideMargin is how far past that canvas the HUD is allowed to
+	// reach on each side, in canvas units - 0 at 4:3, and at its largest when
+	// the screen is 16:9 or wider.  See CG_UpdateScreenScale.
 	float			screenXScale;		// derived from glconfig
 	float			screenYScale;
-
-//	float				charScale;		// Used by Proportional String print
-//	float				bias;			// Used by Proportional String print
+	float			screenXBias;
+	float			screenYBias;
+	float			wideMargin;
 
 	int				serverCommandSequence;	// reliable command stream counter
 	

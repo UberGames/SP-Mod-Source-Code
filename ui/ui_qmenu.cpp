@@ -2084,6 +2084,26 @@ static int SpinControl_ListIndexAtCursor( menulist_s *s )
 
 /*
 ===============
+SpinControl_HoveredRow
+
+The item the cursor is over, or -1 when it is not over the rows at all.  Both
+the draw and the mouse handler ask this, so the bar that appears under a row
+and the sound that plays when you arrive on it cannot disagree about which row
+that is.
+===============
+*/
+static int SpinControl_HoveredRow( menulist_s *s )
+{
+	drawList_t *d = &s->drawList;
+
+	if ( !UI_CursorInRect( d->left, d->up, d->right - d->left, d->down - d->up ) )
+		return -1;
+
+	return SpinControl_ListIndexAtCursor( s );
+}
+
+/*
+===============
 SpinControl_ScrollIntoView
 
 Keeps the current value on screen.  The arrow keys still change the value
@@ -2126,6 +2146,7 @@ static void SpinControl_LayoutList( menulist_s *s )
 	int			i, w, contentW, boxW, boxH;
 
 	memset( d, 0, sizeof( *d ) );
+	d->hovered = -1;		// nothing yet, so arriving anywhere is a move
 
 	d->rows = ( s->numitems < SPINLIST_ROWS_MAX ) ? s->numitems : SPINLIST_ROWS_MAX;
 
@@ -2138,10 +2159,9 @@ static void SpinControl_LayoutList( menulist_s *s )
 			contentW = w;
 	}
 
-	boxW = SPINLIST_RULE + SPINLIST_INSET + contentW + SPINLIST_INSET + SPINLIST_RULE;
+	boxW = SPINLIST_RULE_L + SPINLIST_INSET + contentW + SPINLIST_INSET + SPINLIST_RULE;
 
-	boxH = SPINLIST_RULE + SPINLIST_INSET + d->rows * SPINLIST_ROW_H
-		 + SPINLIST_PAD + SPINLIST_RULE;
+	boxH = SPINLIST_RULE + SPINLIST_HALO + d->rows * SPINLIST_ROW_H + SPINLIST_RULE;
 
 	// It stands clear of the column of buttons rather than over it: the pill
 	// runs from generic.x to that plus its bar and both caps, and the box starts
@@ -2150,7 +2170,7 @@ static void SpinControl_LayoutList( menulist_s *s )
 	// rather than floating beside the list of them.
 	d->boxLeft	= s->generic.x + s->width + MENU_BUTTON_MED_HEIGHT * 2 - 16
 				  + SPINLIST_GUTTER;
-	d->boxTop	= s->generic.y + s->textY - SPINLIST_RULE - SPINLIST_INSET;
+	d->boxTop	= s->generic.y + s->textY - SPINLIST_RULE - SPINLIST_HALO;
 
 	// It stops at its longest choice rather than filling the panel: a box no
 	// bigger than it has to be reads as a popup hanging off the control, where
@@ -2175,8 +2195,8 @@ static void SpinControl_LayoutList( menulist_s *s )
 	d->boxRight		= d->boxLeft + boxW;
 	d->boxBottom	= d->boxTop + boxH;
 
-	d->left		= d->boxLeft + SPINLIST_RULE + SPINLIST_INSET;
-	d->up		= d->boxTop + SPINLIST_RULE + SPINLIST_INSET;
+	d->left		= d->boxLeft + SPINLIST_RULE_L + SPINLIST_INSET;
+	d->up		= d->boxTop + SPINLIST_RULE + SPINLIST_HALO;
 	d->right	= d->boxRight - SPINLIST_RULE - SPINLIST_INSET;
 	d->down		= d->up + d->rows * SPINLIST_ROW_H;
 
@@ -2212,7 +2232,9 @@ static sfxHandle_t SpinControl_InitListRender( menulist_s *s, qboolean *chose )
 
 		s->generic.parent->displaySpinList = s;
 		s->generic.parent->noNewSelecting = qtrue;
-		return menu_move_sound;
+		// the sound a new screen makes, not the one a button makes under the
+		// cursor: a list opening over the menu is a change of place
+		return menu_in_sound;
 	}
 
 	// a row, which chooses and closes
@@ -2221,7 +2243,7 @@ static sfxHandle_t SpinControl_InitListRender( menulist_s *s, qboolean *chose )
 		s->curvalue = SpinControl_ListIndexAtCursor( s );
 		*chose = qtrue;
 		Menu_CloseSpinList( s->generic.parent );
-		return menu_move_sound;
+		return menu_in_sound;
 	}
 
 	// anywhere else on the frame is neither: the rules, the track and the run of
@@ -2233,7 +2255,7 @@ static sfxHandle_t SpinControl_InitListRender( menulist_s *s, qboolean *chose )
 
 	// clear of the box altogether: dismissed
 	Menu_CloseSpinList( s->generic.parent );
-	return menu_move_sound;
+	return menu_in_sound;
 }
 
 /*
@@ -3169,18 +3191,19 @@ void Menu_Draw( menuframework_s *menu )
 		// run would come out white too.
 		ui.R_SetColor( colorTable[s->color2] );
 
-		// The four corners, one texture drawn four ways.  Each is placed by
-		// where its ink has to land, and on the axes it is flipped in the ink
-		// sits SPINLIST_CORNER_FLIP into the rect - see ui_local.h.
+		// The corners.  The right hand pair are the small corner drawn over and
+		// mirrored; the left are the wider one, which turns the thick rule into
+		// the thin bars.  Both sit SPINLIST_CORNER_FLIP into the rect on the
+		// axis they are flipped in - see ui_local.h.
 		UI_DrawHandlePic( d->boxLeft, d->boxTop - SPINLIST_CORNER_FLIP,
-						  SPINLIST_CORNER_TEX, -SPINLIST_CORNER_TEX,
-						  uis.graphicCornerL4to4 );
+						  SPINLIST_LCORNER_TEX_W, -SPINLIST_LCORNER_TEX_H,
+						  uis.graphicCornerL8to4 );
+		UI_DrawHandlePic( d->boxLeft, bottomY - SPINLIST_CORNER_BAR_Y,
+						  SPINLIST_LCORNER_TEX_W, SPINLIST_LCORNER_TEX_H,
+						  uis.graphicCornerL8to4 );
 		UI_DrawHandlePic( d->boxRight - SPINLIST_CORNER_TEX,
 						  d->boxTop - SPINLIST_CORNER_FLIP,
 						  -SPINLIST_CORNER_TEX, -SPINLIST_CORNER_TEX,
-						  uis.graphicCornerL4to4 );
-		UI_DrawHandlePic( d->boxLeft, bottomY - SPINLIST_CORNER_BAR_Y,
-						  SPINLIST_CORNER_TEX, SPINLIST_CORNER_TEX,
 						  uis.graphicCornerL4to4 );
 		UI_DrawHandlePic( d->boxRight - SPINLIST_CORNER_TEX,
 						  bottomY - SPINLIST_CORNER_BAR_Y,
@@ -3189,18 +3212,18 @@ void Menu_Draw( menuframework_s *menu )
 
 		// The four rules, each running a seam into the corner at either end so
 		// the joins cannot open up when 640x480 is stretched to the window.
-		UI_DrawHandlePic( d->boxLeft + SPINLIST_CORNER_INK - SPINLIST_SEAM, d->boxTop,
+		UI_DrawHandlePic( d->boxLeft + SPINLIST_LCORNER_INK_W - SPINLIST_SEAM, d->boxTop,
 						  ( d->boxRight - SPINLIST_CORNER_INK + SPINLIST_SEAM )
-						  - ( d->boxLeft + SPINLIST_CORNER_INK - SPINLIST_SEAM ),
+						  - ( d->boxLeft + SPINLIST_LCORNER_INK_W - SPINLIST_SEAM ),
 						  SPINLIST_RULE, uis.whiteShader );
-		UI_DrawHandlePic( d->boxLeft + SPINLIST_CORNER_INK - SPINLIST_SEAM, bottomY,
+		UI_DrawHandlePic( d->boxLeft + SPINLIST_LCORNER_INK_W - SPINLIST_SEAM, bottomY,
 						  ( d->boxRight - SPINLIST_CORNER_INK + SPINLIST_SEAM )
-						  - ( d->boxLeft + SPINLIST_CORNER_INK - SPINLIST_SEAM ),
+						  - ( d->boxLeft + SPINLIST_LCORNER_INK_W - SPINLIST_SEAM ),
 						  SPINLIST_RULE, uis.whiteShader );
-		UI_DrawHandlePic( d->boxLeft, d->boxTop + SPINLIST_CORNER_INK - SPINLIST_SEAM,
-						  SPINLIST_RULE,
-						  ( d->boxBottom - SPINLIST_CORNER_INK + SPINLIST_SEAM )
-						  - ( d->boxTop + SPINLIST_CORNER_INK - SPINLIST_SEAM ),
+		UI_DrawHandlePic( d->boxLeft, d->boxTop + SPINLIST_LCORNER_INK_H - SPINLIST_SEAM,
+						  SPINLIST_RULE_L,
+						  ( bottomY - SPINLIST_CORNER_BAR_Y + SPINLIST_SEAM )
+						  - ( d->boxTop + SPINLIST_LCORNER_INK_H - SPINLIST_SEAM ),
 						  uis.whiteShader );
 		UI_DrawHandlePic( ruleRight, d->boxTop + SPINLIST_CORNER_INK - SPINLIST_SEAM,
 						  SPINLIST_RULE,
@@ -3208,28 +3231,53 @@ void Menu_Draw( menuframework_s *menu )
 						  - ( d->boxTop + SPINLIST_CORNER_INK - SPINLIST_SEAM ),
 						  uis.whiteShader );
 
+		// The marker: the stretch of left rule beside whatever is currently set.
+		// This is what the thickness is for - a 4-thin rule has nowhere to put
+		// it - so the asymmetry pays for itself rather than being a flourish.
+		// CT_LTBROWN1 is the burnt orange of the bar along the bottom of the
+		// screen, so the marker borrows a colour the frame around it already
+		// uses rather than introducing one.
+		if ( s->curvalue >= d->top && s->curvalue < d->top + d->rows )
+		{
+			int markY = d->up + ( s->curvalue - d->top ) * SPINLIST_ROW_H;
+
+			ui.R_SetColor( colorTable[CT_BLACK] );
+			UI_DrawHandlePic( d->boxLeft, markY - SPINLIST_GAP,
+							  SPINLIST_RULE_L, SPINLIST_GAP, uis.whiteShader );
+			UI_DrawHandlePic( d->boxLeft, markY + SPINLIST_MARK_H,
+							  SPINLIST_RULE_L, SPINLIST_GAP, uis.whiteShader );
+
+			ui.R_SetColor( colorTable[CT_LTBROWN1] );
+			UI_DrawHandlePic( d->boxLeft, markY,
+							  SPINLIST_RULE_L, SPINLIST_MARK_H, uis.whiteShader );
+		}
+
 		// The choices, plain text on the black - no pill each, because a pill is
 		// how this menu draws something you press, and a list of twenty pressable
 		// things reads as noise where twenty words read as a list.
-		hovered = UI_CursorInRect( d->left, d->up, d->right - d->left,
-								   d->down - d->up )
-				  ? SpinControl_ListIndexAtCursor( s ) : -1;
+		hovered = SpinControl_HoveredRow( s );
 
 		for ( i = 0; i < d->rows && d->top + i < s->numitems; i++ )
 		{
 			int	index = d->top + i;
 			int	rowColor;
 
-			// white for what is set, brighter for what the cursor is over, and
-			// for the rest the orange this screen's own title is drawn in - so
-			// the list says what is chosen and what is about to be, in the
-			// colour the menu already uses for saying things
-			if ( index == s->curvalue )
-				rowColor = CT_WHITE;
-			else if ( index == hovered )
-				rowColor = CT_VLTORANGE;
-			else
-				rowColor = CT_LTORANGE;
+			// White for what is set - the marker in the left rule says which
+			// that is as well - and for everything else the orange this
+			// screen's own title is drawn in.  The row under the cursor keeps
+			// that colour, because the bar behind it is the highlight and two
+			// signals for one state only muddies both.
+			rowColor = ( index == s->curvalue ) ? CT_WHITE : CT_LTORANGE;
+
+			// Under the cursor, the translucent orange the scroll lists use for
+			// the row they are on, so a list of choices highlights the way
+			// every other list in these menus does.
+			if ( index == hovered )
+				UI_FillRect( d->left - ( SPINLIST_INSET - SPINLIST_HALO ),
+							 d->up + i * SPINLIST_ROW_H,
+							 ( d->right - d->left )
+							 + ( SPINLIST_INSET - SPINLIST_HALO ) * 2,
+							 SPINLIST_MARK_H, listbar_color );
 
 			UI_DrawProportionalString( d->left, d->up + i * SPINLIST_ROW_H,
 									   SpinControl_ItemName( s, index ),
@@ -3298,6 +3346,36 @@ void Menu_CloseSpinList( menuframework_s *menu )
 
 	menu->displaySpinList = NULL;
 	menu->noNewSelecting = qfalse;
+}
+
+/*
+===============
+Menu_SpinListMouseMoved
+
+Called while a list is open, where UI_MouseEvent otherwise does nothing: focus
+belongs to the control that opened the list, so the usual region test is
+skipped and no move sound would ever play.  The rows are the things being moved
+between now, so they make the sound instead.
+===============
+*/
+void Menu_SpinListMouseMoved( menuframework_s *menu )
+{
+	menulist_s	*s;
+	int			row;
+
+	if ( !menu || !menu->displaySpinList )
+		return;
+
+	s = (menulist_s *)menu->displaySpinList;
+	row = SpinControl_HoveredRow( s );
+
+	if ( row == s->drawList.hovered )
+		return;
+
+	s->drawList.hovered = row;
+
+	if ( row >= 0 )
+		ui.S_StartLocalSound( menu_move_sound, CHAN_LOCAL_SOUND );
 }
 
 /*
@@ -3534,6 +3612,7 @@ void Menu_Cache( void )
 	// The spin list's frame turns all four of its corners with this one, drawn
 	// mirrored, upside down, or both.
 	uis.graphicCornerL4to4 = ui.R_RegisterShaderNoMip("menu/common/corner_ll_4_4.tga");
+	uis.graphicCornerL8to4 = ui.R_RegisterShaderNoMip("menu/common/corner_ll_4_8.tga");
 
 	uis.graphicBracket1CornerLU =  ui.R_RegisterShaderNoMip("menu/common/corner_lu.tga");
 

@@ -150,6 +150,7 @@ static menubitmap_s	s_betaquad_label;
 static menubitmap_s	s_deltaquad_label;
 static menubitmap_s	s_gammaquad_label;
 qboolean	loadModelInitialized;
+static qboolean	mainMenuOpeningPlayed;
 static float federationTimer;
 
 void M_Main_Event (void* ptr, int notification);
@@ -2832,6 +2833,7 @@ void M_Main_Opening (void)
 			s_main_menu.subSeqStatus[2] = 0;
 
 			s_main_menu.openingStart = 0;	
+			mainMenuOpeningPlayed = qtrue;
 		}
 	}
 
@@ -3114,7 +3116,7 @@ void MainMenu_Init( void )
 
 	MainMenu_Cache();
 
-	if (!s_main_menu.openingStart)	// This only happens at the very beginning
+	if (!mainMenuOpeningPlayed)	// This only happens at the very beginning
 	{
 		loadModelInitialized = qfalse;
 	}
@@ -3791,10 +3793,17 @@ void UI_MainMenu(void)
 		return;
 	}
 
-	s_main_menu.openingStart = uis.realtime;
-	if (!s_main_menu.openingStart)	// This only happens at the very beginning
+	// The opening sequence is worth watching once: the button ends appear one at a
+	// time, grow out into bars, and then fill with text.  On the way back from a
+	// sub-screen it is three seconds standing between you and what you came back to
+	// do, so it is only armed until it has played through.
+	if (!mainMenuOpeningPlayed)
 	{
-		s_main_menu.openingStart = 1;
+		s_main_menu.openingStart = uis.realtime;
+		if (!s_main_menu.openingStart)	// only when realtime really is zero
+		{
+			s_main_menu.openingStart = 1;
+		}
 	}
 
 	MainMenu_Init(); 

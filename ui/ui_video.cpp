@@ -1237,17 +1237,24 @@ static void ApplyChanges( void *unused, int notification )
 	ui.Cvar_Set( "r_glDriver", ( char * ) s_drivers[s_video_driver_list.curvalue] );
 
 	// Color Depth
+	//
+	// The stencil buffer is asked for whatever the colour depth is.  It used to
+	// be given up at the two lower settings, on the reasoning of a card that
+	// could not spare eight bits a pixel, and the 32 bit case never asked for it
+	// back - so applying video settings once at a lower setting turned the
+	// stencil buffer off and nothing ever turned it on again.  The renderer uses
+	// it for shadows, which therefore stopped happening, quietly, for good.
+	ui.Cvar_SetValue( "r_stencilbits", 8 );
+
 	switch ( s_video_colordepth_list.curvalue )
 	{
 	case 0:
 		ui.Cvar_SetValue( "r_colorbits", 0 );
 		ui.Cvar_SetValue( "r_depthbits", 0 );
-		ui.Cvar_SetValue( "r_stencilbits", 0 );
 		break;
 	case 1:
 		ui.Cvar_SetValue( "r_colorbits", 16 );
 		ui.Cvar_SetValue( "r_depthbits", 16 );
-		ui.Cvar_SetValue( "r_stencilbits", 0 );
 		break;
 	case 2:
 		ui.Cvar_SetValue( "r_colorbits", 32 );
